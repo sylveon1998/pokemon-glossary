@@ -172,7 +172,6 @@ input[type=file]{display:none;}
       <button class="btn btn-primary" onclick="manualUpdate()">🔄 立即更新</button>
       <button class="btn" onclick="setMode('manual')">👆 手动更新</button>
       <button class="btn" onclick="setMode('offline')">🔒 离线（本地加密）</button>
-      <button class="btn" onclick="promptChangeUrl()">📥 更换在线数据表</button>
     </div>
     <div class="src-status" id="srcStatus"></div>
   </div>
@@ -523,7 +522,7 @@ function buildGenData(){
 }
 
 function renderFileInfo(){
-  document.getElementById('fileStatus').style.display = 'block';
+  document.getElementById('fileStatus').style.display = 'none';
   document.getElementById('fileName').textContent = currentFileName || '术语表';
   const total = allSheets.reduce((s,sn)=>s+workbook[sn].rows.length,0);
   document.getElementById('fileMeta').textContent = `共 ${allSheets.length} 个类型 · ${total} 条术语 · ${LANG_KEYS.length} 列`;
@@ -1691,20 +1690,6 @@ function setMode(m){
   else if(m === 'manual'){ setSrcStatus('已切换为手动更新模式：点击「立即更新」可随时拉取在线数据。'); }
 }
 
-// 更换在线数据表：需密码验证（提示 Q）
-function promptChangeUrl(){
-  const pwd = prompt('Q');   // 密码提示为 Q
-  if(pwd === null) return;
-  if(String(pwd).trim() !== SRC_PASSWORD){ alert('密码错误，无法更换在线数据表。'); return; }
-  const url = prompt('请输入新的在线数据表直链（xlsx 公开链接）：', srcUrl);
-  if(url === null) return;
-  const v = String(url).trim();
-  if(!v){ alert('链接不能为空。'); return; }
-  srcUrl = v;
-  try{ localStorage.setItem(SRC_STORAGE_KEY, srcUrl); }catch(e){}
-  setSrcStatus('已更换在线数据表链接。点击「立即更新」拉取新数据。');
-}
-
 function setSrcStatus(msg){
   const el = document.getElementById('srcStatus');
   if(el) el.textContent = msg;
@@ -1790,7 +1775,7 @@ function applyWorkbook(buf, sourceName){
   parseWorkbook(buf);
   buildGenData(); renderFileInfo(); buildTypeChips(); buildLangChips(); buildGenChips();
   typeSelectAll(true); renderView();
-  setSrcStatus(`已加载：${currentFileName || '数据源'}（${new Date().toLocaleString()}）`);
+  setSrcStatus(`已加载数据（${new Date().toLocaleString()}）`);
 }
 
 // 立即更新：从在线 URL 拉取最新数据，并加密缓存到本地（供离线模式使用）
