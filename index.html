@@ -1766,6 +1766,17 @@ async function readOffline(){
 }
 
 // —— 核心：下载 URL 的 xlsx 并加载 ——
+// 把来源（URL 或文件名）转成仅用于显示的友好名称，避免暴露完整链接
+function toDisplayName(source){
+  if(!source) return '';
+  if(/^https?:\/\//i.test(source)){
+    let name = source.split('/').filter(Boolean).pop() || '';
+    try{ name = decodeURIComponent(name); }catch(e){}
+    return name;
+  }
+  return source;
+}
+
 async function fetchAndLoad(url){
   const r = await fetch(url, { cache:'no-store' });
   if(!r.ok) throw new Error('下载失败：HTTP '+r.status);
@@ -1775,7 +1786,7 @@ async function fetchAndLoad(url){
 
 // 统一应用解析结果（含离线加密存档）
 function applyWorkbook(buf, sourceName){
-  currentFileName = sourceName || '';
+  currentFileName = toDisplayName(sourceName);
   parseWorkbook(buf);
   buildGenData(); renderFileInfo(); buildTypeChips(); buildLangChips(); buildGenChips();
   typeSelectAll(true); renderView();
