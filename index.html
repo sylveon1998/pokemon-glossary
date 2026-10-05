@@ -88,6 +88,8 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .gen-row .tag.custom{background:#e8f5e9; color:#2e7d32;}
 .gen-row .del{flex-shrink:0; cursor:pointer; color:var(--muted); font-size:15px; padding:0 4px;}
 .gen-row .del:hover{color:var(--red);}
+.gen-row .merge-btn{flex-shrink:0; padding:3px 9px; font-size:12px; white-space:nowrap;}
+.gen-row .tag.merge-tag{background:#fff3e0; color:#ef6c00; font-size:10px; padding:1px 6px; border-radius:4px; flex-shrink:0;}
 .gen-editor-add{display:flex; align-items:center; gap:8px; padding:12px 18px; border-top:1px solid var(--border);}
 .gen-editor-add input{padding:6px 10px; border:1px solid var(--border); border-radius:7px; font-size:13px; font-family:inherit;}
 .gen-editor-add input:focus{outline:none; border-color:var(--accent);}
@@ -143,6 +145,9 @@ input[type=file]{display:none;}
 .dex-poke-group-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:18px 0 8px; padding:8px 12px; background:var(--chip); border-radius:8px; border-left:4px solid var(--accent);}
 .dex-poke-group-head .big-name .trad{color:var(--muted); font-size:13px; font-weight:400; margin-left:6px;}
 .dex-entry{background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 4px rgba(30,40,80,.04);}
+.dex-entry-main{display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;}
+.dex-entry-main .desc{flex:1; min-width:220px; font-size:15px; line-height:1.8; color:var(--text);}
+.dex-entry-tags{display:flex; align-items:center; gap:6px; flex-wrap:wrap; flex-shrink:0;}
 .dex-entry-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 .dex-entry .ver-tag{font-size:12px; font-weight:600; color:var(--accent2); background:var(--chip); border-radius:5px; padding:2px 8px;}
 .dex-entry .zy-tag{font-size:11px; border-radius:5px; padding:1px 7px; font-weight:600;}
@@ -158,9 +163,13 @@ input[type=file]{display:none;}
 .dex-version-row:last-child{margin-bottom:0;}
 .dex-version-gen{font-weight:600; font-size:13px; color:var(--accent2); white-space:nowrap; min-width:64px; padding-top:4px;}
 .dex-version-chips{flex:1; display:flex; flex-wrap:wrap; gap:6px;}
-.desc-line{padding:2px 0;}
+.desc-line{padding:2px 0; text-align:left; text-indent:0; margin:0;}
 .desc-line.trad{color:var(--muted);}
 .dex-entry .ver-list{display:flex; flex-wrap:wrap; gap:5px; align-items:center;}
+/* 查看来源列的标签样式 */
+td .src-chip{display:inline-block; font-size:11px; font-weight:600; border-radius:5px; padding:1px 7px; margin:1px 2px 1px 0; white-space:nowrap;}
+td .src-chip.src-sheet{background:#f3e8ff; color:#7c4dff;}
+td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
 </style>
 </head>
 <body>
@@ -207,7 +216,7 @@ input[type=file]{display:none;}
   <!-- ============ 术语翻译模式 ============ -->
   <div class="panel active" id="panel-translate">
     <div class="card" id="card-type">
-      <h2 class="collapsible" onclick="toggleCard(this)">术语类型 <span class="hint">（来自表格 sheet 名）</span><span class="fold-arrow">▼</span></h2>
+      <h2 class="collapsible" onclick="toggleCard(this)">术语类型 <span class="fold-arrow">▼</span></h2>
       <div class="card-body">
       <div class="chip-group" id="typeChips"></div>
       <div class="btn-bar" style="margin-top:10px;">
@@ -270,6 +279,7 @@ input[type=file]{display:none;}
       </div>
       <div class="desc" id="transInfo"></div>
       <div class="btn-bar">
+        <button class="btn" onclick="pasteSrcText(this)">📥 粘贴源文本</button>
         <button class="btn" onclick="copyText('srcText', this)">📋 复制源文本</button>
         <button class="btn" onclick="copyText('dstText', this)">📋 复制译文</button>
         <button class="btn" onclick="clearText('srcText')">🗑 清空源文本</button>
@@ -370,9 +380,9 @@ input[type=file]{display:none;}
     <div class="card">
       <h2>翻译类型 <span class="hint">勾选要显示的说明类型，可与上方筛选叠加</span></h2>
       <div class="btn-bar" style="margin-top:0;">
-        <label class="check"><input type="checkbox" id="dexZyGame" checked onchange="renderDexEntries()"> 游戏官译 <span class="hint">是否暂译=官</span></label>
-        <label class="check"><input type="checkbox" id="dexZyCard" checked onchange="renderDexEntries()"> 卡牌官译 <span class="hint">简官/繁官</span></label>
-        <label class="check"><input type="checkbox" id="dexZyFan" checked onchange="renderDexEntries()"> 非官译 <span class="hint">是否暂译=是</span></label>
+        <label class="check"><input type="checkbox" id="dexZyGame" checked onchange="renderDexEntries()"> 游戏官译</label>
+        <label class="check"><input type="checkbox" id="dexZyCard" checked onchange="renderDexEntries()"> 卡牌官译</label>
+        <label class="check"><input type="checkbox" id="dexZyFan" checked onchange="renderDexEntries()"> 非官译</label>
       </div>
       <div class="btn-bar" style="margin-top:6px; padding-top:10px; border-top:1px dashed var(--border);">
         <span class="dex-filter-label" style="margin:0; align-self:center;">显示语言：</span>
@@ -404,7 +414,7 @@ input[type=file]{display:none;}
       <span>来源缩写 → 完整中文名</span>
       <button class="btn btn-sm" onclick="closeGenMapEditor()">✕ 关闭</button>
     </div>
-    <div class="gen-editor-tip">左侧是表格「来源」列里的缩写（如 <code>GEN10-XXX</code> 中的 <b>XXX</b>），右侧填写它的完整中文名。保存后筛选 chip 和表格会立即更新，并自动记住（下次打开仍生效）。</div>
+    <div class="gen-editor-tip">左侧是表格「来源」列里的缩写（如 <code>GEN10-XXX</code> 中的 <b>XXX</b>），右侧填写它的完整中文名（含括号缩写，如 <code>传说 Ｚ-Ａ(LZA)</code>）。点右侧「合并」可把两个来源合成同一个显示，并可选用其中一个缩写。保存后立即生效并自动记住。</div>
     <div class="gen-editor-list" id="genEditorList"></div>
     <div class="gen-editor-add">
       <span style="font-weight:600; white-space:nowrap;">＋ 新增缩写：</span>
@@ -414,6 +424,7 @@ input[type=file]{display:none;}
     </div>
     <div class="gen-editor-foot">
       <button class="btn btn-sm" onclick="resetGenMap()" title="清空所有自定义来源名称">恢复内置默认</button>
+      <button class="btn btn-sm" onclick="exportGenMapJson()" title="下载映射文件 gen_map.json，上传到 GitHub 仓库即可让所有人同步">📤 导出映射文件</button>
       <span style="flex:1;"></span>
       <button class="btn btn-sm" onclick="closeGenMapEditor()">取消</button>
       <button class="btn btn-primary btn-sm" onclick="commitGenMap()">保存并应用</button>
@@ -497,8 +508,13 @@ const GEN_CODE_CN_BUILTIN = {
 };
 // 用户自定义来源代码 -> 中文映射（localStorage 持久化）
 const GEN_MAP_STORAGE_KEY = 'poke_glossary_gen_map_v1';
+// 来源合并映射：code -> 主code（归并到主 code 显示），localStorage 持久化
+const GEN_MERGE_STORAGE_KEY = 'poke_glossary_gen_merge_v1';
+// 云端映射文件（与术语表、图鉴数据同仓库，供跨设备/跨用户同步）
+const GEN_MAP_URL = 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/refs/heads/main/gen_map.json';
 let GEN_CODE_CN = {};         // 运行时合并结果 = 内置 + 用户自定义（用户覆盖内置）
 let USER_GEN_MAP = {};        // 仅用户自定义部分
+let GEN_MERGE = {};           // 合并映射 code -> 主code
 
 function loadUserGenMap(){
   try{
@@ -511,8 +527,51 @@ function saveUserGenMap(){
   try{ localStorage.setItem(GEN_MAP_STORAGE_KEY, JSON.stringify(USER_GEN_MAP)); }
   catch(e){}
 }
+function loadGenMerge(){
+  try{
+    const raw = localStorage.getItem(GEN_MERGE_STORAGE_KEY);
+    GEN_MERGE = raw ? JSON.parse(raw) : {};
+  }catch(e){ GEN_MERGE = {}; }
+  if(typeof GEN_MERGE !== 'object' || GEN_MERGE === null) GEN_MERGE = {};
+}
+function saveGenMerge(){
+  try{ localStorage.setItem(GEN_MERGE_STORAGE_KEY, JSON.stringify(GEN_MERGE)); }
+  catch(e){}
+}
 function rebuildGenCodeCN(){
   GEN_CODE_CN = Object.assign({}, GEN_CODE_CN_BUILTIN, USER_GEN_MAP);
+  // 应用合并：归并后的 code 显示主 code 的中文名（若主 code 有自定义名则优先）
+  for(const code in GEN_MERGE){
+    const target = GEN_MERGE[code];
+    if(target && target !== code){
+      const targetName = USER_GEN_MAP[target] || GEN_CODE_CN_BUILTIN[target];
+      if(targetName) GEN_CODE_CN[code] = targetName;
+    }
+  }
+}
+// 云端同步：拉取 gen_map.json，合并进本地（覆盖同名 code 的 map 与 merge）
+async function fetchCloudGenMap(){
+  try{
+    const r = await fetch(GEN_MAP_URL, {cache:'no-store'});
+    if(!r.ok) return false;
+    const data = await r.json();
+    if(data && typeof data === 'object'){
+      let changed = false;
+      if(data.map && typeof data.map === 'object'){
+        for(const k in data.map){
+          if(USER_GEN_MAP[k] !== data.map[k]){ USER_GEN_MAP[k] = data.map[k]; changed = true; }
+        }
+      }
+      if(data.merge && typeof data.merge === 'object'){
+        for(const k in data.merge){
+          if(GEN_MERGE[k] !== data.merge[k]){ GEN_MERGE[k] = data.merge[k]; changed = true; }
+        }
+      }
+      if(changed){ saveUserGenMap(); saveGenMerge(); rebuildGenCodeCN(); }
+      return true;
+    }
+  }catch(e){}
+  return false;
 }
 // 世代分组
 const GEN_GROUPS = [
@@ -866,11 +925,13 @@ function collectAllGenCodes(){
 }
 
 let _genEditorDraft = null; // 编辑中的草稿 {code: name}
+let _genEditorMerge = null; // 编辑中的合并草稿 {code: targetCode}
 
 function openGenMapEditor(){
   _genEditorDraft = {};
   Object.keys(GEN_CODE_CN_BUILTIN).forEach(c=>_genEditorDraft[c] = GEN_CODE_CN_BUILTIN[c]);
   Object.keys(USER_GEN_MAP).forEach(c=>_genEditorDraft[c] = USER_GEN_MAP[c]);
+  _genEditorMerge = Object.assign({}, GEN_MERGE);
   renderGenEditorList();
   document.getElementById('genEditorMask').style.display='flex';
 }
@@ -897,10 +958,18 @@ function renderGenEditorList(){
     const tag = meta.builtin
       ? '<span class="tag builtin">内置</span>'
       : (isCustom ? '<span class="tag custom">自定义</span>' : '<span class="tag builtin">待命名</span>');
+    // 合并状态
+    const mergeTarget = _genEditorMerge[code];
+    const mergedInto = mergeTarget && mergeTarget !== code;
+    const mergeInfo = mergedInto
+      ? `<span class="tag merge-tag" title="已合并到 ${escHtml(mergeTarget)}">→ ${escHtml(mergeTarget)}</span>`
+      : '';
     row.innerHTML =
       `<span class="code" title="${escHtml(code)}">${escHtml(code)}</span>` +
-      `<input type="text" value="${escHtml(name)}" placeholder="填写完整中文名" data-code="${escHtml(code)}">` +
+      `<input type="text" value="${escHtml(name)}" placeholder="填写完整中文名" data-code="${escHtml(code)}" ${mergedInto?'disabled':''}>` +
       tag +
+      mergeInfo +
+      `<button class="btn btn-sm merge-btn" data-code="${escHtml(code)}" title="把该来源与另一个来源合并为同一显示">${mergedInto?'取消合并':'合并'}</button>` +
       `<span class="del" title="删除该自定义名称">✕</span>`;
     list.appendChild(row);
   });
@@ -912,14 +981,48 @@ function renderGenEditorList(){
       else delete _genEditorDraft[c];
     });
   });
+  // 绑定合并
+  list.querySelectorAll('.merge-btn').forEach(btn=>{
+    btn.onclick = ()=>{
+      const c = btn.dataset.code;
+      if(_genEditorMerge[c] && _genEditorMerge[c] !== c){
+        delete _genEditorMerge[c];
+        renderGenEditorList();
+      } else {
+        promptMergeTarget(c);
+      }
+    };
+  });
   // 绑定删除
   list.querySelectorAll('.del').forEach(del=>{
     del.onclick = ()=>{
       const c = del.closest('.gen-row').dataset.code;
       delete _genEditorDraft[c];
+      delete _genEditorMerge[c];
       renderGenEditorList();
     };
   });
+}
+
+// 弹窗选择合并目标（并可选缩写）
+function promptMergeTarget(code){
+  const entries = collectAllGenCodes();
+  const targets = entries.map(e=>e[0]).filter(c=>c !== code);
+  if(targets.length === 0){ alert('暂无可合并的其他来源。'); return; }
+  // 用简易 prompt 选择目标 code
+  const target = prompt(
+    `把「${code}」合并到哪个来源？（输入目标缩写）\n可选：${targets.join(', ')}\n\n合并后「${code}」将显示为目标来源的名称与括号缩写。`,
+    targets[0]
+  );
+  if(target == null) return;
+  const t = target.trim().replace(/\s+/g,'');
+  if(!t){ return; }
+  if(!targets.includes(t)){
+    alert(`目标缩写「${t}」不在列表中。可选项：${targets.join(', ')}`);
+    return;
+  }
+  _genEditorMerge[code] = t;
+  renderGenEditorList();
 }
 
 function addGenMapRow(){
@@ -947,6 +1050,14 @@ function commitGenMap(){
   });
   USER_GEN_MAP = nextUser;
   saveUserGenMap();
+  // 保存合并映射（清理指向自身的无效项）
+  const nextMerge = {};
+  Object.keys(_genEditorMerge).forEach(c=>{
+    const t = _genEditorMerge[c];
+    if(t && t !== c) nextMerge[c] = t;
+  });
+  GEN_MERGE = nextMerge;
+  saveGenMerge();
   rebuildGenCodeCN();
   closeGenMapEditor();
   // 刷新筛选 chip 与表格
@@ -954,12 +1065,28 @@ function commitGenMap(){
 }
 
 function resetGenMap(){
-  if(!confirm('确定清空所有自定义来源名称，恢复内置默认吗？')) return;
+  if(!confirm('确定清空所有自定义来源名称与合并，恢复内置默认吗？')) return;
   USER_GEN_MAP = {};
+  GEN_MERGE = {};
   saveUserGenMap();
+  saveGenMerge();
   rebuildGenCodeCN();
   closeGenMapEditor();
   if(workbook){ buildGenChips(); renderView(); }
+}
+
+// 导出映射文件 gen_map.json（供上传到 GitHub 仓库，实现跨设备/跨用户同步）
+function exportGenMapJson(){
+  const payload = { map: USER_GEN_MAP, merge: GEN_MERGE };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gen_map.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // 点击遮罩空白处关闭
@@ -1710,15 +1837,21 @@ function buildRowHtml(item, seqIdx, langs){
     if(v==null || v==='') h += `<td></td>`;
     else h += `<td title="${escHtml(v)}">${escHtml(v)}</td>`;
   }
-  // 查看来源列（问题8）：术语类型(sheet名) + 来源（世代）
+  // 查看来源列（问题8）：术语类型(sheet名) + 来源（世代），标签化显示
   if(isSrcColOn()){
     const sheetName = item.sheet || '';
     const rawSrc = item.row['来源'];
     const srcLabel = rawSrc ? fmtSrc(rawSrc) : '';
-    const cell = (sheetName || srcLabel)
-      ? `${sheetName}${sheetName && srcLabel ? ' / ' : ''}${srcLabel}`
-      : '';
-    h += `<td title="${escHtml(cell)}">${escHtml(cell)}</td>`;
+    let cellHtml = '';
+    if(sheetName) cellHtml += `<span class="src-chip src-sheet">${escHtml(sheetName)}</span>`;
+    if(srcLabel){
+      // 拆分可能含多段（逗号分隔的多来源）为独立标签
+      const parts = String(srcLabel).split(/[,，、]/).map(s=>s.trim()).filter(Boolean);
+      for(const pt of parts){
+        cellHtml += `<span class="src-chip src-gen">${escHtml(pt)}</span>`;
+      }
+    }
+    h += `<td title="${escHtml((sheetName||'') + (sheetName && srcLabel ? ' / ' : '') + (srcLabel||''))}">${cellHtml || '&nbsp;'}</td>`;
   }
   h += '</tr>';
   return h;
@@ -1737,7 +1870,8 @@ function fmtSrc(s){
   const p = s.match(/^GEN(\d+)-(.*)$/);
   if(!p) return s;
   const code = p[2].replace(/\s+/g,'');
-  return GEN_CODE_CN[code] ? `${GEN_CODE_CN[code]} (${s})` : s;
+  // GEN_CODE_CN[code] 已是「中文名(缩写)」完整格式，直接返回，避免双重括号
+  return GEN_CODE_CN[code] ? GEN_CODE_CN[code] : s;
 }
 
 // 列宽调整
@@ -1784,6 +1918,22 @@ function copyText(id, btn){
     ta.value = text; document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
     const old = btn.textContent; btn.textContent='✅ 已复制'; setTimeout(()=>btn.textContent=old,1200);
+  });
+}
+// 粘贴剪贴板文本到源文本框
+function pasteSrcText(btn){
+  const el = document.getElementById('srcText');
+  navigator.clipboard.readText().then(text=>{
+    if(text == null) text = '';
+    el.value = text;
+    if(btn){
+      const old = btn.textContent;
+      btn.textContent = '✅ 已粘贴';
+      setTimeout(()=>btn.textContent=old, 1200);
+    }
+    applyAutoDetect();
+  }).catch(()=>{
+    alert('无法读取剪贴板，请手动在源文本框内粘贴（Ctrl+V）。');
   });
 }
 function clearText(id){
@@ -1944,7 +2094,12 @@ async function autoDetect(){
 }
 // 初始化用户来源映射（需在文件加载/渲染前合并，保证新增缩写即使未重新导入也能显示中文）
 loadUserGenMap();
+loadGenMerge();
 rebuildGenCodeCN();
+// 异步拉取云端映射（跨设备/跨用户同步），成功后刷新显示
+fetchCloudGenMap().then(ok=>{
+  if(ok && workbook){ buildGenChips(); renderView(); }
+});
 // 延迟到首屏渲染后再自动检测本地文件，避免阻塞初始加载
 if(window.requestIdleCallback){
   requestIdleCallback(()=>autoDetect(), { timeout: 2000 });
@@ -2768,11 +2923,13 @@ function renderEntryListHtml(list, single){
         return _dexLang==='trad' ? vv : (vo ? vo.simp : vv);
       });
       html += `<div class="dex-entry">
-        <div class="dex-entry-head">
-          <span class="zy-tag ${zy.cls}">${zy.label}</span>
-          <span class="ver-list">${verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('')}</span>
+        <div class="dex-entry-main">
+          <div class="desc">${renderDescText(v.d.d, v.d.t)}</div>
+          <div class="dex-entry-tags">
+            <span class="zy-tag ${zy.cls}">${zy.label}</span>
+            <span class="ver-list">${verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('')}</span>
+          </div>
         </div>
-        <div class="desc">${renderDescText(v.d.d, v.d.t)}</div>
       </div>`;
     });
   } else {
@@ -2783,11 +2940,13 @@ function renderEntryListHtml(list, single){
       const vo = _dexVersions[it.verIdx];
       const verName = _dexLang==='trad' ? (vo?vo.name:'') : (vo?vo.simp:'');
       html += `<div class="dex-entry">
-        <div class="dex-entry-head">
-          <span class="ver-tag">${escHtml(verName)}</span>
-          <span class="zy-tag ${zy.cls}">${zy.label}</span>
+        <div class="dex-entry-main">
+          <div class="desc">${renderDescText(it.d.d, it.d.t)}</div>
+          <div class="dex-entry-tags">
+            <span class="ver-tag">${escHtml(verName)}</span>
+            <span class="zy-tag ${zy.cls}">${zy.label}</span>
+          </div>
         </div>
-        <div class="desc">${renderDescText(it.d.d, it.d.t)}</div>
       </div>`;
     }
   }
