@@ -145,9 +145,9 @@ input[type=file]{display:none;}
 .dex-poke-group-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:18px 0 8px; padding:8px 12px; background:var(--chip); border-radius:8px; border-left:4px solid var(--accent);}
 .dex-poke-group-head .big-name .trad{color:var(--muted); font-size:13px; font-weight:400; margin-left:6px;}
 .dex-entry{background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 4px rgba(30,40,80,.04);}
-.dex-entry-main{display:flex; align-items:flex-start; gap:14px; flex-wrap:wrap;}
-.dex-entry-main .desc{flex:1; min-width:220px; font-size:15px; line-height:1.8; color:var(--text);}
-.dex-entry-tags{display:flex; align-items:center; gap:6px; flex-wrap:wrap; flex-shrink:0;}
+.dex-entry-main{display:flex; flex-direction:column; gap:10px;}
+.dex-entry-main .desc{font-size:15px; line-height:1.8; color:var(--text); width:100%;}
+.dex-entry-tags{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
 .dex-entry-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 .dex-entry .ver-tag{font-size:12px; font-weight:600; color:var(--accent2); background:var(--chip); border-radius:5px; padding:2px 8px;}
 .dex-entry .zy-tag{font-size:11px; border-radius:5px; padding:1px 7px; font-weight:600;}
@@ -155,7 +155,6 @@ input[type=file]{display:none;}
 .dex-entry .zy-card{background:#e3f2fd; color:#1565c0;}
 .dex-entry .zy-fan{background:#fff3e0; color:#ef6c00;}
 .dex-entry .zy-other{background:#f5f5f5; color:#757575;}
-.dex-entry .desc{font-size:15px; line-height:1.8; color:var(--text);}
 .dex-gen-sel{display:flex; flex-wrap:wrap; gap:6px;}
 .dex-gen-sel .chip{padding:5px 12px;}
 .dex-filter-label{font-weight:600; font-size:13px; margin-bottom:6px; color:var(--accent2);}
@@ -360,7 +359,10 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
     <div class="card">
       <h2 class="collapsible" onclick="toggleCard(this)">按世代筛选 <span class="hint">选择世代后，可展开选择该世代内的具体宝可梦</span><span class="fold-arrow">▼</span></h2>
       <div class="card-body">
-        <div class="dex-filter-label">世代</div>
+        <div class="dex-filter-label" style="display:flex; align-items:center; gap:8px;">
+          <span>世代</span>
+          <button class="btn btn-sm" onclick="clearDexGenFilter()">清空已筛选</button>
+        </div>
         <div class="dex-gen-sel" id="dexGenSel"></div>
         <div style="margin-top:10px; display:none;" id="dexPokeSelWrap">
           <div class="dex-filter-label">宝可梦（当前世代）</div>
@@ -379,16 +381,18 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
 
     <div class="card">
       <h2>翻译类型 <span class="hint">勾选要显示的说明类型，可与上方筛选叠加</span></h2>
-      <div class="btn-bar" style="margin-top:0;">
-        <label class="check"><input type="checkbox" id="dexZyGame" checked onchange="renderDexEntries()"> 游戏官译</label>
-        <label class="check"><input type="checkbox" id="dexZyCard" checked onchange="renderDexEntries()"> 卡牌官译</label>
-        <label class="check"><input type="checkbox" id="dexZyFan" checked onchange="renderDexEntries()"> 非官译</label>
-      </div>
-      <div class="btn-bar" style="margin-top:6px; padding-top:10px; border-top:1px dashed var(--border);">
-        <span class="dex-filter-label" style="margin:0; align-self:center;">显示语言：</span>
-        <button class="btn btn-sm" id="dexLangSimpl" onclick="setDexLang('simpl')">简体</button>
-        <button class="btn btn-sm" id="dexLangTrad" onclick="setDexLang('trad')">繁体</button>
-        <button class="btn btn-sm" id="dexLangBoth" onclick="setDexLang('both')">简繁同时</button>
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div class="btn-bar" style="margin-top:0;">
+          <label class="check"><input type="checkbox" id="dexZyGame" checked onchange="renderDexEntries()"> 游戏官译</label>
+          <label class="check"><input type="checkbox" id="dexZyCard" checked onchange="renderDexEntries()"> 卡牌官译</label>
+          <label class="check"><input type="checkbox" id="dexZyFan" checked onchange="renderDexEntries()"> 非官译</label>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="dex-filter-label" style="margin:0;">显示语言：</span>
+          <button class="btn btn-sm" id="dexLangSimpl" onclick="setDexLang('simpl')">简体</button>
+          <button class="btn btn-sm" id="dexLangTrad" onclick="setDexLang('trad')">繁体</button>
+          <button class="btn btn-sm" id="dexLangBoth" onclick="setDexLang('both')">简繁同时</button>
+        </div>
       </div>
     </div>
 
@@ -694,6 +698,8 @@ function buildGenData(){
           const m = String(src).match(/^GEN(\d+)-(.*)$/);
           if(m){ gen = parseInt(m[1]); code = m[2].replace(/\s+/g,''); }
         }
+        // 应用合并映射：code 归并到主 code
+        if(code && !special && GEN_MERGE[code] && GEN_MERGE[code] !== code) code = GEN_MERGE[code];
       }
       FLAT_ROWS.push({sheet:sn, row:r, gen, code, special});
     }
@@ -724,6 +730,8 @@ function buildGenData(){
       specialMap[p.special].raw.add(s);
       continue;
     }
+    // 应用合并映射：code 归并到主 code（如 ZA -> LZA）
+    if(GEN_MERGE[code] && GEN_MERGE[code] !== code) code = GEN_MERGE[code];
     codeToGen[s] = {gen:p.gen, code};
     if(!genMap[p.gen]) genMap[p.gen] = {name:'第'+cnNum(p.gen)+'世代', codes:new Set(), raw:new Set()};
     genMap[p.gen].codes.add(code);
@@ -1060,8 +1068,8 @@ function commitGenMap(){
   saveGenMerge();
   rebuildGenCodeCN();
   closeGenMapEditor();
-  // 刷新筛选 chip 与表格
-  if(workbook){ buildGenChips(); renderView(); }
+  // 重新构建来源分组（应用合并映射），再刷新筛选 chip 与表格
+  if(workbook){ buildGenData(); buildGenChips(); renderView(); }
 }
 
 function resetGenMap(){
@@ -1072,7 +1080,7 @@ function resetGenMap(){
   saveGenMerge();
   rebuildGenCodeCN();
   closeGenMapEditor();
-  if(workbook){ buildGenChips(); renderView(); }
+  if(workbook){ buildGenData(); buildGenChips(); renderView(); }
 }
 
 // 导出映射文件 gen_map.json（供上传到 GitHub 仓库，实现跨设备/跨用户同步）
@@ -2098,7 +2106,7 @@ loadGenMerge();
 rebuildGenCodeCN();
 // 异步拉取云端映射（跨设备/跨用户同步），成功后刷新显示
 fetchCloudGenMap().then(ok=>{
-  if(ok && workbook){ buildGenChips(); renderView(); }
+  if(ok && workbook){ buildGenData(); buildGenChips(); renderView(); }
 });
 // 延迟到首屏渲染后再自动检测本地文件，避免阻塞初始加载
 if(window.requestIdleCallback){
@@ -2384,18 +2392,14 @@ function isDexFile(name){
 
 // 暂译类型细分：
 //   game  -> 游戏官译（是否暂译 = 官）
-//   card  -> 卡牌官译（同时含简官 和 繁官）
-//   cardSimplOnly -> 仅简官（无繁官）：简体显示卡牌官译，繁体显示非官译
-//   cardTradOnly -> 仅繁官（无简官）：繁体显示卡牌官译，简体显示非官译
+//   card  -> 卡牌官译（含 简官 / 繁官 / 简官,繁官 任一）
 //   fan   -> 非官译（是否暂译 = 是）
 //   other -> 其他
 function zantyiType(z){
   z = (z||'').trim();
   const hasJian = z.indexOf('简官') >= 0;
   const hasFan = z.indexOf('繁官') >= 0;
-  if(hasJian && hasFan) return 'card';
-  if(hasJian) return 'cardSimplOnly';
-  if(hasFan) return 'cardTradOnly';
+  if(hasJian || hasFan) return 'card';
   if(z === '官') return 'game';
   if(z === '是') return 'fan';
   return 'other';
@@ -2504,17 +2508,26 @@ function bindDexInfiniteScroll(){
   }, { passive:true });
 }
 
+// 清空世代筛选（恢复全部）
+function clearDexGenFilter(){
+  _dexGenFilter = null;
+  _dexSelected = null;
+  buildDexGenSel();
+  buildDexPokeSel();
+  renderDexEntries();
+}
+
 function buildDexGenSel(){
   const el = document.getElementById('dexGenSel');
   el.innerHTML = '';
   // 全部
   const all = document.createElement('div');
-  all.className = 'chip on'; all.textContent = '全部'; all.dataset.gen = '';
+  all.className = 'chip' + (_dexGenFilter === null ? ' on' : ''); all.textContent = '全部'; all.dataset.gen = '';
   all.onclick = ()=>{ _dexGenFilter = null; _dexSelected = null; el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c===all)); buildDexPokeSel(); renderDexEntries(); };
   el.appendChild(all);
   POKEDEX_INDEX.generations.forEach(g=>{
     const d = document.createElement('div');
-    d.className = 'chip'; d.dataset.gen = g.gen;
+    d.className = 'chip' + (_dexGenFilter === g.gen ? ' on' : ''); d.dataset.gen = g.gen;
     d.textContent = g.name + '（' + g.min + '-' + g.max + '）';
     d.onclick = ()=>{ _dexGenFilter = g.gen; _dexSelected = null; el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c===d)); buildDexPokeSel(); renderDexEntries(); };
     el.appendChild(d);
@@ -2541,12 +2554,12 @@ function buildDexPokeSel(){
   }
   // 全部（该世代）
   const all = document.createElement('div');
-  all.className = 'chip small on'; all.textContent = '全部';
+  all.className = 'chip small' + (_dexSelected === null ? ' on' : ''); all.textContent = '全部';
   all.onclick = ()=>{ _dexSelected = null; el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c===all)); renderDexEntries(); };
   el.appendChild(all);
   list.forEach(p=>{
     const d = document.createElement('div');
-    d.className = 'chip small';
+    d.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id ? ' on' : '');
     const nm = _dexLang==='simpl' ? p.name : p.nameTrad;
     d.textContent = String(p.id).padStart(4,'0') + ' ' + nm;
     d.onclick = ()=>{ selectDexPoke(p.id, '00'); };
@@ -2555,9 +2568,30 @@ function buildDexPokeSel(){
 }
 
 // 版本筛选：世代标签 + 版本 chips 放在同一行（用行容器包起来）
+// 每世代带「全选」按钮，顶部带「清空全部」按钮
 function buildDexVersionSel(){
   const el = document.getElementById('dexVersionSel');
   el.innerHTML = '';
+  // 顶部工具行：清空全部已筛选
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:8px;';
+  const clearAllBtn = document.createElement('button');
+  clearAllBtn.className = 'btn btn-sm';
+  clearAllBtn.textContent = '清空全部已筛选';
+  clearAllBtn.onclick = ()=>{
+    _dexVersionFilter.clear();
+    buildDexVersionSel();
+    renderDexEntries();
+  };
+  toolbar.appendChild(clearAllBtn);
+  if(_dexVersionFilter.size > 0){
+    const cnt = document.createElement('span');
+    cnt.className = 'hint';
+    cnt.textContent = '已选 ' + _dexVersionFilter.size + ' 个版本';
+    toolbar.appendChild(cnt);
+  }
+  el.appendChild(toolbar);
+
   const gens = {};
   POKEDEX_INDEX.versions.forEach(v=>{
     if(!gens[v.gen]) gens[v.gen] = [];
@@ -2565,24 +2599,35 @@ function buildDexVersionSel(){
   });
   const genNames = {1:'第一世代',2:'第二世代',3:'第三世代',4:'第四世代',5:'第五世代',6:'第六世代',7:'第七世代',8:'第八世代',9:'第九世代'};
   Object.keys(gens).sort((a,b)=>a-b).forEach(g=>{
-    // 每个世代一行：世代名 + 该世代版本 chips 同行
+    // 每个世代一行：世代名 + 「全选」按钮 + 该世代版本 chips 同行
     const row = document.createElement('div');
     row.className = 'dex-version-row';
     const label = document.createElement('span');
     label.className = 'dex-version-gen';
     label.textContent = genNames[g] || ('第'+g+'世代');
     row.appendChild(label);
+    // 该世代「全选」按钮
+    const genAllBtn = document.createElement('button');
+    genAllBtn.className = 'btn btn-sm';
+    genAllBtn.textContent = '全选';
+    genAllBtn.title = '一键加入该世代所有版本';
+    genAllBtn.onclick = ()=>{
+      gens[g].forEach(v=>_dexVersionFilter.add(v.name));
+      buildDexVersionSel();
+      renderDexEntries();
+    };
+    row.appendChild(genAllBtn);
     const chipsWrap = document.createElement('div');
     chipsWrap.className = 'chip-group dex-version-chips';
     gens[g].forEach(v=>{
       const d = document.createElement('div');
-      d.className = 'chip small'; d.dataset.ver = v.name;
+      d.className = 'chip small' + (_dexVersionFilter.has(v.name) ? ' on' : ''); d.dataset.ver = v.name;
       const nm = _dexLang==='simpl' ? v.simp : v.name;
       d.textContent = nm;
       d.onclick = ()=>{
-        d.classList.toggle('on');
-        if(d.classList.contains('on')) _dexVersionFilter.add(v.name);
-        else _dexVersionFilter.delete(v.name);
+        if(_dexVersionFilter.has(v.name)) _dexVersionFilter.delete(v.name);
+        else _dexVersionFilter.add(v.name);
+        buildDexVersionSel();
         renderDexEntries();
       };
       chipsWrap.appendChild(d);
@@ -2700,20 +2745,10 @@ function setDexViewMode(mode){
 
 // 判断某条说明在当前语言下是否属于"卡牌官译"（仅繁官时，简体视为非官译；仅简官时，繁体视为非官译）
 function zyLabelFor(e, lang){
-  // e.z: game | card | cardSimplOnly | cardTradOnly | fan | other
+  // e.z: game | card | fan | other
   const z = e.z;
   if(z === 'game') return {label:'游戏官译', cls:'zy-game'};
   if(z === 'card') return {label:'卡牌官译', cls:'zy-card'};
-  if(z === 'cardTradOnly'){
-    // 仅繁官：繁体=卡牌官译，简体=非官译
-    if(lang === 'simpl') return {label:'非官译', cls:'zy-fan'};
-    return {label:'卡牌官译', cls:'zy-card'};
-  }
-  if(z === 'cardSimplOnly'){
-    // 仅简官：简体=卡牌官译，繁体=非官译
-    if(lang === 'trad') return {label:'非官译', cls:'zy-fan'};
-    return {label:'卡牌官译', cls:'zy-card'};
-  }
   if(z === 'fan') return {label:'非官译', cls:'zy-fan'};
   return {label:'其他', cls:'zy-other'};
 }
@@ -2797,17 +2832,14 @@ function renderDexEntries(){
     return;
   }
 
-  // 应用暂译类型筛选（依据当前语言判断卡牌官译是否适用）
+  // 应用暂译类型筛选（卡牌官译不因简繁视角改变类别）
   const zyGame = document.getElementById('dexZyGame').checked;
   const zyCard = document.getElementById('dexZyCard').checked;
   const zyFan = document.getElementById('dexZyFan').checked;
   const zyPass = (z)=>{
-    let cat = z;
-    if(cat === 'cardTradOnly' && _dexLang === 'simpl') cat = 'fan';
-    if(cat === 'cardSimplOnly' && _dexLang === 'trad') cat = 'fan';
-    if(cat === 'game') return zyGame;
-    if(cat === 'card') return zyCard;
-    if(cat === 'fan') return zyFan;
+    if(z === 'game') return zyGame;
+    if(z === 'card') return zyCard;
+    if(z === 'fan') return zyFan;
     return false;
   };
   const verPass = (verIdx)=>{
