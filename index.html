@@ -33,6 +33,11 @@ header .sub{font-size:13px; opacity:.9;}
 .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:var(--shadow);}
 .card h2{font-size:16px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid var(--chip); color:var(--accent2);}
 .card h2.collapsible{cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+/* 图鉴标题栏：标题 + 右侧工具（勾选/按钮/统计）同行 */
+.card h2.dex-toolbar-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.card h2.dex-toolbar-head .dex-head-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+.card h2.dex-toolbar-head .dex-head-tools .check{font-size:13px; font-weight:400; color:var(--text);}
+.card h2.dex-toolbar-head .dex-head-sep{width:1px; height:18px; background:var(--border); display:inline-block;}
 .card h2.collapsible .fold-arrow{transition:transform .2s; font-size:12px; color:var(--muted);}
 .card.collapsed h2.collapsible{margin-bottom:0; padding-bottom:0; border-bottom:none;}
 .card.collapsed h2.collapsible .fold-arrow{transform:rotate(-90deg);}
@@ -174,6 +179,16 @@ input[type=file]{display:none;}
 td .src-chip{display:inline-block; font-size:11px; font-weight:600; border-radius:5px; padding:1px 7px; margin:1px 2px 1px 0; white-space:nowrap;}
 td .src-chip.src-sheet{background:#f3e8ff; color:#7c4dff;}
 td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
+/* 图鉴浮动窗口 */
+.dex-float{position:fixed; right:18px; bottom:24px; width:230px; max-height:60vh; overflow:hidden; display:flex; flex-direction:column; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 28px rgba(30,40,80,.16); z-index:900;}
+.dex-float-top{display:block; width:100%; padding:10px 12px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:600; cursor:pointer; border-radius:11px 11px 0 0;}
+.dex-float-top:hover{opacity:.9;}
+.dex-float-list{overflow-y:auto; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:5px;}
+.dex-float-item{display:flex; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);}
+.dex-float-item:hover{background:var(--accent); color:#fff;}
+.dex-float-item .fno{color:var(--accent2); font-weight:600; flex-shrink:0;}
+.dex-float-item:hover .fno{color:#fff;}
+.dex-float-item .fname{overflow:hidden; text-overflow:ellipsis;}
 </style>
 </head>
 <body>
@@ -257,6 +272,12 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         <button class="btn btn-sm" onclick="optSelectAll(true)">全选</button>
         <button class="btn btn-sm" onclick="optSelectAll(false)">全不选</button>
         <button class="btn btn-sm" onclick="optInvert()">反选</button>
+      </div>
+      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+        <div style="font-weight:600; margin-bottom:6px; font-size:13px;">增强翻译 <span class="hint">剥离地名/宝可梦前后缀，让核心词也能直接翻译</span></div>
+        <div class="btn-bar" style="margin-top:4px;">
+          <label class="check"><input type="checkbox" id="optEnhance" onchange="onEnhanceToggle()"> 增强翻译模式 <span class="hint">仅简中/繁中/日文/英文间生效</span></label>
+        </div>
       </div>
       <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
         <div style="font-weight:600; margin-bottom:6px; font-size:13px;">不翻译的特殊来源 <span class="hint">勾选后，对应来源的词保留原文不翻译</span></div>
@@ -377,41 +398,49 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
     </div>
 
     <div class="card">
-      <h2 class="collapsible" onclick="toggleCard(this)">按版本筛选 <span class="hint">选择应用版本查看对应说明</span><span class="fold-arrow">▼</span></h2>
+      <h2 class="collapsible" onclick="toggleCard(this)">
+        <span>按版本筛选</span><span class="fold-arrow">▼</span>
+        <button class="btn btn-sm" style="margin-left:auto;" onclick="clearDexVersionFilter(); event.stopPropagation();">清空全部已筛选</button>
+      </h2>
       <div class="card-body">
-        <div class="dex-filter-label">应用版本</div>
         <div class="chip-group" id="dexVersionSel"></div>
       </div>
     </div>
 
     <div class="card">
-      <h2>翻译类型 <span class="hint">勾选要显示的说明类型，可与上方筛选叠加</span></h2>
-      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div class="btn-bar" style="margin-top:0;">
+      <h2 class="dex-toolbar-head">
+        <span>翻译类型</span>
+        <span class="dex-head-tools">
           <label class="check"><input type="checkbox" id="dexZyGame" checked onchange="renderDexEntries()"> 游戏官译</label>
           <label class="check"><input type="checkbox" id="dexZyCard" checked onchange="renderDexEntries()"> 卡牌官译</label>
           <label class="check"><input type="checkbox" id="dexZyFan" checked onchange="renderDexEntries()"> 非官译</label>
-        </div>
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span class="dex-filter-label" style="margin:0;">显示语言：</span>
+          <span class="dex-head-sep"></span>
           <button class="btn btn-sm" id="dexLangSimpl" onclick="setDexLang('simpl')">简体</button>
           <button class="btn btn-sm" id="dexLangTrad" onclick="setDexLang('trad')">繁体</button>
           <button class="btn btn-sm" id="dexLangBoth" onclick="setDexLang('both')">简繁同时</button>
-        </div>
-      </div>
+        </span>
+      </h2>
     </div>
 
     <div class="card">
-      <h2>图鉴说明 <span class="hint">默认显示全部宝可梦；选择宝可梦可单独查看，可切换按游戏版本或按说明类型显示</span></h2>
-      <div class="btn-bar" style="margin-bottom:10px;">
-        <span class="dex-filter-label" style="margin:0; align-self:center;">显示方式：</span>
-        <button class="btn btn-sm" id="dexViewByVer" onclick="setDexViewMode('byVersion')">按游戏版本</button>
-        <button class="btn btn-sm" id="dexViewByDesc" onclick="setDexViewMode('byDesc')">按说明类型</button>
-      </div>
-      <div class="stats" id="dexStats"></div>
+      <h2 class="dex-toolbar-head">
+        <span>图鉴说明</span>
+        <span class="dex-head-tools">
+          <button class="btn btn-sm" id="dexViewByVer" onclick="setDexViewMode('byVersion')">按游戏版本</button>
+          <button class="btn btn-sm" id="dexViewByDesc" onclick="setDexViewMode('byDesc')">按说明类型</button>
+          <span class="dex-head-sep"></span>
+          <span class="stats" id="dexStats" style="margin:0;"></span>
+        </span>
+      </h2>
       <div id="dexDetail"></div>
     </div>
   </div>
+</div>
+
+<!-- 图鉴浮动窗口：滚动到图鉴说明部分时显示 -->
+<div id="dexFloat" class="dex-float" style="display:none;">
+  <button class="dex-float-top" onclick="scrollToTop()" title="回到网页顶部">↑ 回到顶部</button>
+  <div class="dex-float-list" id="dexFloatList"></div>
 </div>
 
 <div id="popup" class="popup" style="display:none;"></div>
@@ -1306,6 +1335,99 @@ function buildIndex(srcLang, dstLang, selectedTypes, opts){
   return index;
 }
 
+// ===================== 增强翻译模式 =====================
+// 剥离地名/宝可梦前后缀，让核心词（如「マサラ」）也能直接命中翻译（如「真新」）。
+// 规则：后缀类（city/town/island）只剥结尾；both 类（宝可梦/宝可）开头结尾都剥。
+// 变体跨语言对应：只要 src 与 dst 剥到同一类别（affix name）且同一位置（pos），即视为对应。
+const ENHANCE_AFFIX = [
+  { name:'city',   type:'suffix', variants:['シティ','市','City'] },
+  { name:'town',   type:'suffix', variants:['タウン','镇','鎮','Town'] },
+  { name:'island', type:'suffix', variants:['しま','島','岛','島','Island'] },
+  { name:'pokemon',type:'both',   variants:['ポケモン','Pokémon','宝可梦','寶可夢'] },
+  { name:'poke',   type:'both',   variants:['ポケ','Poké','宝可','寶可'] },
+];
+
+// 增强翻译支持的语言集合（仅简中/繁中/日文假名+汉字/英文）
+const ENHANCE_LANGS = new Set(['简体中文','繁体中文','日文假名','日文汉字','日文汉字假名','英文']);
+
+// 判断当前语言组合是否可用增强翻译
+function enhanceUsable(srcLang, dstLang){
+  return ENHANCE_LANGS.has(srcLang) && ENHANCE_LANGS.has(dstLang);
+}
+
+// 剥离一个词的前后缀，返回 { core, affix, pos } 或 null。
+// 优先选择更长的变体（更具体的匹配）：如「ポケモン」优先于「ポケ」，
+// 避免「ポケモンセンター」被误剥成「モンセンター」。
+function stripEnhanceAffix(w){
+  if(!w || w.length < 2) return null;
+  const str = String(w);
+  let best = null;
+  for(const a of ENHANCE_AFFIX){
+    for(const v of a.variants){
+      // 后缀（suffix 和 both 都支持结尾）
+      if(str.length > v.length && str.endsWith(v)){
+        const core = str.slice(0, str.length - v.length);
+        if(core && (!best || v.length > best.vlen)) best = { core, affix:a.name, pos:'suffix', vlen:v.length };
+      }
+      // 前缀（仅 both）
+      if(a.type === 'both' && str.length > v.length && str.startsWith(v)){
+        const core = str.slice(v.length);
+        if(core && (!best || v.length > best.vlen)) best = { core, affix:a.name, pos:'prefix', vlen:v.length };
+      }
+    }
+  }
+  if(!best) return null;
+  // 去掉核心词首尾空白（如「Pallet Town」剥「Town」后剩「Pallet 」）
+  best.core = best.core.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
+  if(!best.core) return null;
+  return { core: best.core, affix: best.affix, pos: best.pos };
+}
+
+// 增强翻译索引缓存：cacheKey -> Map(coreKey -> cands)
+let _enhanceCache = new Map();
+
+// 构建增强索引：把「带前后缀的术语」剥离后，将核心源词映射到核心译文
+function buildEnhanceIndex(srcLang, dstLang, selectedTypes, opts){
+  const sig = optsSignature(opts);
+  const typesKey = selectedTypes.slice().sort().join(',');
+  const cacheKey = srcLang + '|' + dstLang + '|' + sig + '|' + typesKey + '|enh';
+  if(_enhanceCache.has(cacheKey)) return _enhanceCache.get(cacheKey);
+
+  const index = new Map();
+  for(const sn of selectedTypes){
+    const ws = workbook[sn];
+    for(const r of ws.rows){
+      const dv = dstValue(r, dstLang);
+      if(dv == null || dv === '') continue;
+      const srcOrig = r['来源'];
+      const special = specialOf(srcOrig);
+      const srcs = srcVariants(r, srcLang, opts);
+      for(const sv of srcs){
+        const sStrip = stripEnhanceAffix(sv);
+        if(!sStrip) continue;
+        // 目标译文也要能剥离到「同一类别 + 同一位置」的前后缀
+        const dStrip = stripEnhanceAffix(dv);
+        if(!dStrip || dStrip.affix !== sStrip.affix || dStrip.pos !== sStrip.pos) continue;
+        // 核心源词 -> 核心译文
+        const coreKey = normKey(sStrip.core, opts);
+        const coreDst = dStrip.core;
+        if(!coreKey || !coreDst) continue;
+        if(!index.has(coreKey)) index.set(coreKey, []);
+        index.get(coreKey).push({sheet:sn, src:sStrip.core, dst:coreDst, id:r['id'], special, srcOrig, enhance:true, fullSrc:sv, fullDst:dv});
+      }
+    }
+  }
+  if(_enhanceCache.size > 64) _enhanceCache.clear();
+  _enhanceCache.set(cacheKey, index);
+  return index;
+}
+
+// 增强模式开关切换：清空缓存即可（索引按需重建）
+function onEnhanceToggle(){
+  _enhanceCache.clear();
+  _indexCache.clear();
+}
+
 // 分词：把文本切成 word / space / punct token，并记录每个 token 在原文的字符偏移
 // word 字符类含 . ' ’ - _ 以支持缩写（Mr. S.S. Ph.D.）和连字符词（Ho-Oh）及所有格（Eternatus's）
 function tokenize(text){
@@ -1402,6 +1524,13 @@ function doTranslate(){
 
   const index = buildIndex(srcLang, dstLang, types, opts);
 
+  // 增强翻译模式：构建增强索引（剥离前后缀后的核心词映射）
+  const enhanceOn = document.getElementById('optEnhance') && document.getElementById('optEnhance').checked;
+  let enhanceIndex = null;
+  if(enhanceOn && enhanceUsable(srcLang, dstLang)){
+    enhanceIndex = buildEnhanceIndex(srcLang, dstLang, types, opts);
+  }
+
   // 需要跳过的特殊来源集合（问题4）
   const skipSpecials = new Set();
   if(document.getElementById('optSkipGENA').checked) skipSpecials.add('GENA');
@@ -1438,12 +1567,18 @@ function doTranslate(){
       }
       if(words.length !== len) continue; // 词数不足
       const phraseRaw = words.map(w=>w.raw).join(' ');
-      const hit = matchPhrase(phraseRaw, index, opts);
+      let hit = matchPhrase(phraseRaw, index, opts);
+      let enhanced = false;
+      // 普通索引未命中时，尝试增强索引（剥离前后缀后的核心词）
+      if(!hit && enhanceIndex){
+        hit = matchEnhance(phraseRaw, enhanceIndex, opts);
+        if(hit) enhanced = true;
+      }
       if(hit){
         const srcStart = words[0].start;
         const srcEnd = words[words.length-1].end;
-        // 拆词多译：短语整体命中时，检查首词能否单独命中不同译名
-        const splitCands = buildSplitCands(words, index, opts, hit.cands);
+        // 拆词多译：短语整体命中时，检查首词能否单独命中不同译名（增强命中不适用，跳过）
+        const splitCands = enhanced ? [] : buildSplitCands(words, index, opts, hit.cands);
         let allCands = dedupCands(hit.cands.concat(splitCands));
         // 过滤掉被勾选跳过的特殊来源候选
         if(skipSpecials.size > 0){
@@ -1491,6 +1626,17 @@ function matchPhrase(phraseRaw, index, opts){
   for(const mk of keys){
     if(index.has(mk.key)){
       return { cands: dedupCands(index.get(mk.key)), suffix: mk.suffix };
+    }
+  }
+  return null;
+}
+
+// 增强匹配：在增强索引里查「剥离前后缀后的核心词」，命中返回核心译文候选
+function matchEnhance(phraseRaw, enhIndex, opts){
+  const keys = genMatchKeys(phraseRaw, opts);
+  for(const mk of keys){
+    if(enhIndex.has(mk.key)){
+      return { cands: dedupCands(enhIndex.get(mk.key)), suffix: mk.suffix };
     }
   }
   return null;
@@ -2518,12 +2664,79 @@ function initDexUI(){
 function bindDexInfiniteScroll(){
   window.addEventListener('scroll', ()=>{
     const detail = document.getElementById('dexDetail');
-    if(!detail || detail._dexEnded) return;
-    const r = detail.getBoundingClientRect();
-    if(r.bottom < window.innerHeight + 600){
-      appendDexBatch();
+    if(detail && !detail._dexEnded){
+      const r = detail.getBoundingClientRect();
+      if(r.bottom < window.innerHeight + 600){
+        appendDexBatch();
+      }
     }
+    updateDexFloatVisibility();
   }, { passive:true });
+}
+
+// ===================== 图鉴浮动窗口 =====================
+let _dexFloatPokes = [];  // 已渲染的宝可梦 [{id, form, name}]
+
+// 更新浮动窗内容（宝可梦编号+名字，一行两个）
+function updateDexFloat(){
+  const list = document.getElementById('dexFloatList');
+  if(!list) return;
+  // 只显示「已渲染」的宝可梦（即 _dexRenderGroups 前 _dexRenderCount 个）
+  const pokes = [];
+  for(let i = 0; i < _dexRenderCount && i < _dexRenderGroups.length; i++){
+    const p = _dexRenderGroups[i].p;
+    const nm = _dexLang==='simpl' ? p.name : ( _dexLang==='trad' ? p.nameTrad : p.name );
+    pokes.push({ id:p.id, form:p.form, name:nm });
+  }
+  _dexFloatPokes = pokes;
+  if(pokes.length === 0){ list.innerHTML = ''; return; }
+  list.innerHTML = pokes.map(p =>
+    `<div class="dex-float-item" data-id="${p.id}" data-form="${p.form}" title="#${String(p.id).padStart(4,'0')} ${escHtml(p.name)}">
+      <span class="fno">#${String(p.id).padStart(4,'0')}</span>
+      <span class="fname">${escHtml(p.name)}</span>
+    </div>`
+  ).join('');
+  list.querySelectorAll('.dex-float-item').forEach(el=>{
+    el.onclick = ()=> jumpToDexPoke(el.dataset.id, el.dataset.form);
+  });
+}
+
+// 跳转到对应宝可梦的图鉴说明
+function jumpToDexPoke(id, form){
+  const target = document.getElementById(`dex-poke-${id}_${form}`);
+  if(target){ target.scrollIntoView({ behavior:'smooth', block:'start' }); }
+}
+
+// 回到网页顶部
+function scrollToTop(){
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// 判断是否滚动到「图鉴说明」部分，控制浮动窗显示
+function updateDexFloatVisibility(){
+  const float = document.getElementById('dexFloat');
+  const detail = document.getElementById('dexDetail');
+  if(!float) return;
+  // 仅图鉴模式激活时显示
+  const panel = document.getElementById('panel-dex');
+  if(!panel || !panel.classList.contains('active')){
+    float.style.display = 'none';
+    return;
+  }
+  if(!detail || !_dexLoaded){
+    float.style.display = 'none';
+    return;
+  }
+  // 图鉴说明顶部滚过视口上沿（已进入说明区域）即显示
+  const r = detail.getBoundingClientRect();
+  const show = r.top < window.innerHeight * 0.6;
+  float.style.display = show ? 'flex' : 'none';
+}
+
+// 语言切换/数据变化后刷新浮动窗
+function refreshDexFloat(){
+  updateDexFloat();
+  updateDexFloatVisibility();
 }
 
 // 清空世代筛选（恢复全部）
@@ -2586,29 +2799,15 @@ function buildDexPokeSel(){
 }
 
 // 版本筛选：世代标签 + 版本 chips 放在同一行（用行容器包起来）
-// 每世代带「全选」按钮，顶部带「清空全部」按钮
+// 每世代带「全选」按钮；「清空全部已筛选」按钮已移到标题栏
+function clearDexVersionFilter(){
+  _dexVersionFilter.clear();
+  buildDexVersionSel();
+  renderDexEntries();
+}
 function buildDexVersionSel(){
   const el = document.getElementById('dexVersionSel');
   el.innerHTML = '';
-  // 顶部工具行：清空全部已筛选
-  const toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex; align-items:center; gap:8px; margin-bottom:8px;';
-  const clearAllBtn = document.createElement('button');
-  clearAllBtn.className = 'btn btn-sm';
-  clearAllBtn.textContent = '清空全部已筛选';
-  clearAllBtn.onclick = ()=>{
-    _dexVersionFilter.clear();
-    buildDexVersionSel();
-    renderDexEntries();
-  };
-  toolbar.appendChild(clearAllBtn);
-  if(_dexVersionFilter.size > 0){
-    const cnt = document.createElement('span');
-    cnt.className = 'hint';
-    cnt.textContent = '已选 ' + _dexVersionFilter.size + ' 个版本';
-    toolbar.appendChild(cnt);
-  }
-  el.appendChild(toolbar);
 
   const gens = {};
   POKEDEX_INDEX.versions.forEach(v=>{
@@ -2934,13 +3133,13 @@ function appendDexBatch(){
     const trad = _dexLang==='simpl' ? p.nameTrad : p.name;
 
     if(single){
-      html += `<div class="dex-detail-head">
+      html += `<div class="dex-detail-head" id="dex-poke-${p.id}_${p.form}">
         <span class="big-no">#${String(p.id).padStart(4,'0')}</span>
         <span class="big-name">${escHtml(nm)}${trad!==nm?`<span class="trad">${escHtml(trad)}</span>`:''}</span>
         <span class="tag" style="background:var(--chip);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:12px;">${genNameOf(p.gen)}</span>
       </div>`;
     } else {
-      html += `<div class="dex-poke-group-head">
+      html += `<div class="dex-poke-group-head" id="dex-poke-${p.id}_${p.form}">
         <span class="big-no" style="font-size:18px;">#${String(p.id).padStart(4,'0')}</span>
         <span class="big-name" style="font-size:17px;">${escHtml(nm)}${trad!==nm?`<span class="trad">${escHtml(trad)}</span>`:''}</span>
         <span class="tag" style="background:var(--chip);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:11px;">${genNameOf(p.gen)}</span>
@@ -2952,6 +3151,7 @@ function appendDexBatch(){
 
   detail.insertAdjacentHTML('beforeend', html);
   _dexRenderCount = end;
+  updateDexFloat();
 
   // 是否还有更多
   const hasMore = _dexRenderCount < groups.length;
