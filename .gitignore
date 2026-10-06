@@ -1,0 +1,12 @@
+# Excel 临时锁文件
+~$*.xlsx
+~$*.xls
+
+# IDE
+.idea/
+*.iml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
