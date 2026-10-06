@@ -34,7 +34,7 @@ header .sub{font-size:13px; opacity:.9;}
 .card h2{font-size:16px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid var(--chip); color:var(--accent2);}
 .card h2.collapsible{cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:8px;}
 /* 图鉴标题栏：标题 + 右侧工具（勾选/按钮/统计）同行 */
-.card h2.dex-toolbar-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+.card h2.dex-toolbar-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; border-bottom:none; padding-bottom:0; margin-bottom:2px;}
 .card h2.dex-toolbar-head .dex-head-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
 .card h2.dex-toolbar-head .dex-head-tools .check{font-size:13px; font-weight:400; color:var(--text);}
 .card h2.dex-toolbar-head .dex-head-sep{width:1px; height:18px; background:var(--border); display:inline-block;}
@@ -75,6 +75,7 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .popup .opt:hover{background:var(--chip);}
 .popup .opt .type-tag{font-size:10px; color:var(--accent); background:var(--chip); border-radius:4px; padding:1px 5px;}
 .popup .opt .special-tag{font-size:10px; color:#7c4dff; background:#f3e8ff; border-radius:4px; padding:1px 5px; margin-left:4px; font-weight:600;}
+.popup .opt .enh-tag{font-size:10px; color:#0d9488; background:#e6fffa; border:1px solid #99f6e4; border-radius:4px; padding:1px 5px; margin-left:4px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; display:inline-block; vertical-align:bottom;}
 .popup .opt .tail{color:var(--muted); font-style:italic; margin-left:2px;}
 .popup .sep{height:1px; background:var(--border); margin:6px 0;}
 .popup .opt-all{color:var(--accent2); font-weight:600;}
@@ -179,16 +180,16 @@ input[type=file]{display:none;}
 td .src-chip{display:inline-block; font-size:11px; font-weight:600; border-radius:5px; padding:1px 7px; margin:1px 2px 1px 0; white-space:nowrap;}
 td .src-chip.src-sheet{background:#f3e8ff; color:#7c4dff;}
 td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
-/* 图鉴浮动窗口 */
-.dex-float{position:fixed; right:18px; bottom:24px; width:230px; max-height:60vh; overflow:hidden; display:flex; flex-direction:column; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 28px rgba(30,40,80,.16); z-index:900;}
-.dex-float-top{display:block; width:100%; padding:10px 12px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:600; cursor:pointer; border-radius:11px 11px 0 0;}
+/* 图鉴浮动窗口（flex-wrap 布局，不依赖 grid；条目强制一行两个、超长省略） */
+.dex-float{position:fixed; right:18px; bottom:24px; width:250px; max-height:60vh; overflow:hidden; display:flex; flex-direction:column; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 28px rgba(30,40,80,.16); z-index:900;}
+.dex-float-top{flex-shrink:0; display:block; width:100%; box-sizing:border-box; padding:10px 12px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:600; cursor:pointer; border-radius:11px 11px 0 0; text-align:center;}
 .dex-float-top:hover{opacity:.9;}
-.dex-float-list{overflow-y:auto; padding:8px; display:grid; grid-template-columns:1fr 1fr; gap:5px;}
-.dex-float-item{display:flex; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--text);}
+.dex-float-list{flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:8px; display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start;}
+.dex-float-item{box-sizing:border-box; flex:1 1 calc(50% - 3px); max-width:calc(50% - 2.5px); min-width:0; display:flex; flex-direction:row; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; line-height:1.4; white-space:nowrap; overflow:hidden; color:var(--text);}
 .dex-float-item:hover{background:var(--accent); color:#fff;}
-.dex-float-item .fno{color:var(--accent2); font-weight:600; flex-shrink:0;}
+.dex-float-item .fno{color:var(--accent2); font-weight:600; flex-shrink:0; white-space:nowrap;}
 .dex-float-item:hover .fno{color:#fff;}
-.dex-float-item .fname{overflow:hidden; text-overflow:ellipsis;}
+.dex-float-item .fname{flex:1 1 0; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -217,7 +218,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
 
   <!-- ============ 数据更新（前台简洁版） ============ -->
   <div id="srcCard" class="card src-card">
-    <h2>数据更新 <span class="hint">在线数据表 · 手动 / 离线 / 立即更新</span></h2>
+    <h2>数据更新</h2>
     <div class="btn-bar" style="margin-top:0;">
       <button class="btn btn-primary" onclick="manualUpdate()">🔄 立即更新</button>
       <button class="btn" onclick="setMode('manual')">👆 手动更新</button>
@@ -247,7 +248,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
     </div>
 
     <div class="card" id="card-lang">
-      <h2 class="collapsible" onclick="toggleCard(this)">翻译语言 <span class="hint">源语言 → 目标语言</span><span class="fold-arrow">▼</span></h2>
+      <h2 class="collapsible" onclick="toggleCard(this)">翻译语言 <span class="fold-arrow">▼</span></h2>
       <div class="card-body">
       <div class="row">
         <div class="grow">
@@ -273,19 +274,11 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         <button class="btn btn-sm" onclick="optSelectAll(false)">全不选</button>
         <button class="btn btn-sm" onclick="optInvert()">反选</button>
       </div>
-      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <div style="font-weight:600; margin-bottom:6px; font-size:13px;">增强翻译 <span class="hint">剥离地名/宝可梦前后缀，让核心词也能直接翻译</span></div>
-        <div class="btn-bar" style="margin-top:4px;">
-          <label class="check"><input type="checkbox" id="optEnhance" onchange="onEnhanceToggle()"> 增强翻译模式 <span class="hint">仅简中/繁中/日文/英文间生效</span></label>
-        </div>
-      </div>
-      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <div style="font-weight:600; margin-bottom:6px; font-size:13px;">不翻译的特殊来源 <span class="hint">勾选后，对应来源的词保留原文不翻译</span></div>
-        <div class="btn-bar" style="margin-top:4px;">
-          <label class="check"><input type="checkbox" id="optSkipGENA"> 动画（GENA）</label>
-          <label class="check"><input type="checkbox" id="optSkipGENS"> 旁支游戏（GENS）</label>
-          <label class="check"><input type="checkbox" id="optSkipGENM"> 漫画（GENM）</label>
-        </div>
+      <div class="btn-bar" style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border);">
+        <label class="check" title="仅简中/繁中/日文/英文间生效。自动剥离市/镇/岛等地名后缀和宝可梦/Poké等前后缀，让核心词也能直接翻译（如输入 マサラ → 真新）"><input type="checkbox" id="optEnhance" onchange="onEnhanceToggle()"> 增强翻译</label>
+        <label class="check" title="勾选后，动画来源（GENA）的词保留原文不翻译"><input type="checkbox" id="optSkipGENA"> 跳过动画</label>
+        <label class="check" title="勾选后，旁支游戏来源（GENS）的词保留原文不翻译"><input type="checkbox" id="optSkipGENS"> 跳过旁支</label>
+        <label class="check" title="勾选后，漫画来源（GENM）的词保留原文不翻译"><input type="checkbox" id="optSkipGENM"> 跳过漫画</label>
       </div>
       </div>
     </div>
@@ -299,7 +292,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         </div>
         <div class="grow">
           <div style="font-weight:600; margin-bottom:6px;">翻译结果</div>
-          <div id="dstText" class="dst-box" contenteditable="false" placeholder="翻译结果将显示在这里（点击红色高亮词可切换多译）..."></div>
+          <div id="dstText" class="dst-box" contenteditable="false" placeholder="翻译结果将显示在这里（点击红色词可切换多译）..."></div>
         </div>
       </div>
       <div class="desc" id="transInfo"></div>
@@ -320,7 +313,11 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
   <!-- ============ 术语查看模式 ============ -->
   <div class="panel" id="panel-view">
     <div class="card">
-      <h2>筛选 <span class="hint">类型 · 来源 · 分页</span></h2>
+      <h2>筛选</h2>
+      <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center;">
+        <input type="text" id="viewSearch" placeholder="🔍 输入文字筛选术语（匹配任意列）" style="flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit;" oninput="onViewSearch()">
+        <button class="btn btn-sm" onclick="clearViewSearch()">清空</button>
+      </div>
       <div style="margin-bottom:10px;">
         <div style="font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:8px;">
           <span>术语类型</span>
@@ -353,19 +350,19 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
     </div>
 
     <div class="card">
-      <h2>显示语言 <span class="hint">勾选要显示的列，可全选</span></h2>
+      <h2>显示语言</h2>
       <div class="chip-group" id="viewLangChips"></div>
       <div class="btn-bar" style="margin-top:10px;">
         <button class="btn btn-sm" onclick="viewLangAll(true)">全选</button>
         <button class="btn btn-sm" onclick="viewLangAll(false)">全不选</button>
       </div>
       <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <label class="check"><input type="checkbox" id="optShowSrcCol" onchange="renderView()"> 查看来源列 <span class="hint">显示术语类型（sheet）与来源（世代）</span></label>
+        <label class="check"><input type="checkbox" id="optShowSrcCol" onchange="renderView()"> 查看来源列</label>
       </div>
     </div>
 
     <div class="card">
-      <h2>术语列表 <span class="hint">拖动表头边框可调整列宽，悬停可滚动查看完整内容</span></h2>
+      <h2>术语列表</h2>
       <div class="stats" id="viewStats"></div>
       <div class="tbl-wrap" id="tblWrap"></div>
       <div class="pager" id="pager"></div>
@@ -375,20 +372,23 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
   <!-- ============ 图鉴模式 ============ -->
   <div class="panel" id="panel-dex">
     <div class="card">
-      <h2>查找宝可梦 <span class="hint">输入全国图鉴编号、中文名（简繁均可）或拼音，实时匹配</span></h2>
-      <div class="dex-search-wrap">
-        <input type="text" id="dexSearch" class="dex-search-input" placeholder="输入编号（如 1、0001）、中文名（如 妙蛙种子 / 妙蛙種子）或拼音（如 miaowazhongzi / mwzz）..." autocomplete="off">
-        <div class="dex-suggest" id="dexSuggest"></div>
-      </div>
+      <h2 class="dex-toolbar-head" style="border-bottom:none; padding-bottom:2px; margin-bottom:8px;">
+        <span>查找宝可梦</span>
+        <span class="dex-head-tools" style="flex:1 1 240px; max-width:480px;">
+          <span class="dex-search-wrap" style="flex:1; display:block;">
+            <input type="text" id="dexSearch" class="dex-search-input" style="padding:8px 12px; font-size:14px;" placeholder="编号 / 中文名（简繁）/ 拼音" autocomplete="off">
+            <div class="dex-suggest" id="dexSuggest"></div>
+          </span>
+        </span>
+      </h2>
     </div>
 
     <div class="card">
-      <h2 class="collapsible" onclick="toggleCard(this)">按世代筛选 <span class="hint">选择世代后，可展开选择该世代内的具体宝可梦</span><span class="fold-arrow">▼</span></h2>
+      <h2 class="collapsible" onclick="toggleCard(this)">
+        <span>按世代筛选</span><span class="fold-arrow">▼</span>
+        <button class="btn btn-sm" style="margin-left:auto;" onclick="clearDexGenFilter(); event.stopPropagation();">清空已筛选</button>
+      </h2>
       <div class="card-body">
-        <div class="dex-filter-label" style="display:flex; align-items:center; gap:8px;">
-          <span>世代</span>
-          <button class="btn btn-sm" onclick="clearDexGenFilter()">清空已筛选</button>
-        </div>
         <div class="dex-gen-sel" id="dexGenSel"></div>
         <div style="margin-top:10px; display:none;" id="dexPokeSelWrap">
           <div class="dex-filter-label">宝可梦（当前世代）</div>
@@ -452,7 +452,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
       <span>来源缩写 → 完整中文名</span>
       <button class="btn btn-sm" onclick="closeGenMapEditor()">✕ 关闭</button>
     </div>
-    <div class="gen-editor-tip">左侧是表格「来源」列里的缩写（如 <code>GEN10-XXX</code> 中的 <b>XXX</b>），右侧填写它的完整中文名（含括号缩写，如 <code>传说 Ｚ-Ａ(LZA)</code>）。点右侧「合并」可把两个来源合成同一个显示，并可选用其中一个缩写。保存后立即生效并自动记住。</div>
+    <div class="gen-editor-tip">左：来源缩写　右：完整中文名（GENA 等字母大类也在此命名）。「合并」可把多个来源合并为同一显示。保存后立即生效并自动记住。</div>
     <div class="gen-editor-list" id="genEditorList"></div>
     <div class="gen-editor-add">
       <span style="font-weight:600; white-space:nowrap;">＋ 新增缩写：</span>
@@ -697,21 +697,38 @@ function parseWorkbook(data){
 }
 
 // 构建来源代码集合 + 扁平化数据（供查看模式极速筛选/虚拟滚动）
-// 特殊来源：GENA=动画, GENS=旁支游戏, GENM=漫画
-// 来源列两种写法都支持：裸的「GENA」或带分支的「GENA-XXX」/「GENS-XXX」/「GENM-XXX」
+// 来源识别规则：
+//   1) GEN + 数字（可带小数，如 GEN1 / GEN1.5）→ 第X世代，可带分支 GEN1-RG
+//   2) GEN + 字母或字母数字混合（如 GENA / GENS / GENM / GENABC）→ 命名来源（大类），
+//      显示名 = 用户在「管理来源名称」里填的名字 > 内置标签（动画/旁支游戏/漫画）> 原码；
+//      裸码（如 GENA）只显示「全部」，出现 GENA-XX 后才把 XX 列在「全部」后面
 const SPECIAL_SRC = {
   'GENA': { key:'GENA', label:'动画', cn:'动画' },
   'GENS': { key:'GENS', label:'旁支游戏', cn:'旁支' },
   'GENM': { key:'GENM', label:'漫画', cn:'漫画' }
 };
-// 统一解析特殊来源：返回 { special, code }；非特殊来源返回 null。
-// 支持：GENA / GENA-XXX / GENS / GENS-XXX / GENM / GENM-XXX（大小写不敏感）
+// 统一解析字母类来源：返回 { special, code }；非字母类返回 null。
+// 支持：GENA / GENA-XXX / gens / gens-xxx（大小写不敏感，键统一大写）
 function parseSpecialSrc(s){
   if(s==null) return null;
   const str = String(s).trim();
-  const m = str.match(/^(GENA|GENS|GENM)(?:-(.*))?$/i);
+  const m = str.match(/^GEN([A-Za-z][A-Za-z0-9]*)(?:-(.*))?$/);
   if(!m) return null;
-  return { special: m[1].toUpperCase(), code: (m[2]||'').replace(/\s+/g,'') };
+  return { special: ('GEN'+m[1]).toUpperCase(), code: (m[2]||'').replace(/\s+/g,'') };
+}
+// 数字类来源：GEN + 数字（支持小数），分支可省略。返回 { gen, code } 或 null
+function parseGenNumSrc(s){
+  if(s==null) return null;
+  const str = String(s).trim();
+  const m = str.match(/^GEN(\d+(?:\.\d+)?)(?:-(.*))?$/);
+  if(!m) return null;
+  return { gen: parseFloat(m[1]), code: m[2] ? m[2].replace(/\s+/g,'') : '' };
+}
+// 命名来源的显示名：用户自定义（管理来源名）> 内置标签 > 原码
+function namedSrcLabel(key){
+  if(USER_GEN_MAP[key]) return USER_GEN_MAP[key];
+  if(SPECIAL_SRC[key]) return SPECIAL_SRC[key].label;
+  return key;
 }
 function buildGenData(){
   const codeSet = new Set();
@@ -729,8 +746,8 @@ function buildGenData(){
           special = sp.special;
           code = sp.code;
         } else {
-          const m = String(src).match(/^GEN(\d+)-(.*)$/);
-          if(m){ gen = parseInt(m[1]); code = m[2].replace(/\s+/g,''); }
+          const gn = parseGenNumSrc(src);
+          if(gn){ gen = gn.gen; code = gn.code; }
         }
         // 应用合并映射：code 归并到主 code
         if(code && !special && GEN_MERGE[code] && GEN_MERGE[code] !== code) code = GEN_MERGE[code];
@@ -742,15 +759,15 @@ function buildGenData(){
   SRC_GEN_MAP = {};
   GEN_LIST = [];
   const genMap = {}; // genNumber -> {name, codes:Set, items:Set(原始代码)}
-  const specialMap = {}; // specialKey -> {name, codes:Set, raw:Set}
+  const specialMap = {}; // 命名来源 key -> {name, codes:Set, raw:Set}
   const codeToGen = {};
-  // 解析原始代码 GENn-XXX
+  // 解析原始代码：GEN+数字（含小数）或 GEN+字母（命名来源）
   function parseSrc(s){
     const sp = parseSpecialSrc(s);
     if(sp) return { special: sp.special, code: sp.code };
-    const m = s.match(/^GEN(\d+)-(.*)$/);
-    if(!m) return null;
-    return {gen:parseInt(m[1]), code:m[2].trim()};
+    const gn = parseGenNumSrc(s);
+    if(gn) return { gen: gn.gen, code: gn.code };
+    return null;
   }
   for(const s of codeSet){
     const p = parseSrc(s);
@@ -758,9 +775,9 @@ function buildGenData(){
     // 归一化 code（去掉空格）
     let code = p.code.replace(/\s+/g,'');
     if(p.special){
-      // 特殊来源
-      if(!specialMap[p.special]) specialMap[p.special] = { name: SPECIAL_SRC[p.special].label, codes:new Set(), raw:new Set() };
-      if(code) specialMap[p.special].codes.add(code); // 裸 GENA 无分支代码，不加入 codes
+      // 命名来源（GENA/GENS/GENM 及其他 GEN+字母）：裸码无分支代码，不加入 codes
+      if(!specialMap[p.special]) specialMap[p.special] = { name: namedSrcLabel(p.special), codes:new Set(), raw:new Set() };
+      if(code) specialMap[p.special].codes.add(code);
       specialMap[p.special].raw.add(s);
       continue;
     }
@@ -768,27 +785,32 @@ function buildGenData(){
     if(GEN_MERGE[code] && GEN_MERGE[code] !== code) code = GEN_MERGE[code];
     codeToGen[s] = {gen:p.gen, code};
     if(!genMap[p.gen]) genMap[p.gen] = {name:'第'+cnNum(p.gen)+'世代', codes:new Set(), raw:new Set()};
-    genMap[p.gen].codes.add(code);
+    if(code) genMap[p.gen].codes.add(code); // 裸 GEN1 无分支代码，不加入 codes
     genMap[p.gen].raw.add(s);
   }
   function cnNum(n){
-    const map={1:'一',2:'二',3:'三',4:'四',5:'五',6:'六',7:'七',8:'八',9:'九',10:'十'};
-    return map[n]||n;
+    // 整数 1-10 用中文数字，其余（含小数 1.5、大于 10 的数字）直接用数字
+    if(Number.isInteger(n) && n >= 1 && n <= 10){
+      const map={1:'一',2:'二',3:'三',4:'四',5:'五',6:'六',7:'七',8:'八',9:'九',10:'十'};
+      return map[n];
+    }
+    return n;
   }
-  // 排序（世代）
+  // 排序（世代，支持小数如 1、1.5、2）
   const genNums = Object.keys(genMap).map(Number).sort((a,b)=>a-b);
   for(const g of genNums){
     const info = genMap[g];
     const codes = Array.from(info.codes);
     GEN_LIST.push({gen:g, name:info.name, codes, raw:Array.from(info.raw), special:null});
   }
-  // 特殊来源三行：动画(GENA)、旁支游戏(GENS)、漫画(GENM)，按固定顺序
-  const specialOrder = ['GENA','GENS','GENM'];
-  for(const sk of specialOrder){
+  // 命名来源行：动画(GENA)、旁支游戏(GENS)、漫画(GENM) 按固定顺序在前，其余按编码排序
+  const knownOrder = ['GENA','GENS','GENM'];
+  const otherNamed = Object.keys(specialMap).filter(k=>!knownOrder.includes(k)).sort();
+  for(const sk of [...knownOrder, ...otherNamed]){
     if(!specialMap[sk]) continue;
     const info = specialMap[sk];
     const codes = Array.from(info.codes).sort();
-    GEN_LIST.push({gen:null, name:SPECIAL_SRC[sk].label, codes, raw:Array.from(info.raw), special:sk});
+    GEN_LIST.push({gen:null, name:namedSrcLabel(sk), codes, raw:Array.from(info.raw), special:sk});
   }
 }
 
@@ -940,15 +962,8 @@ function buildGenChips(){
       sub.onclick=()=>{ sub.classList.toggle('on'); renderView(); };
       wrap.appendChild(sub);
     });
-    // 裸特殊来源（如纯「GENA」无分支）也要有一个明确的 chip，否则这一栏看起来空空的
-    if(g.special && g.codes.length === 0){
-      const sub = document.createElement('div');
-      sub.className='chip small'; sub.dataset.group='gen';
-      sub.dataset.special = g.special;
-      sub.textContent = `${g.name} (${g.special})`;
-      sub.onclick=()=>{ sub.classList.toggle('on'); renderView(); };
-      wrap.appendChild(sub);
-    }
+    // 命名来源（GENA 等）是大类：裸码只显示「全部」；出现 GENA-XX 分支后，
+    // XX 才会作为 chip 列在「全部」后面（不生成代表裸码本身的 chip）
     row.appendChild(wrap);
     gc.appendChild(row);
   });
@@ -960,10 +975,13 @@ function collectAllGenCodes(){
   const set = new Map(); // code -> {builtin:bool, custom:bool, inData:bool}
   Object.keys(GEN_CODE_CN_BUILTIN).forEach(c=>{ if(!set.has(c)) set.set(c,{builtin:true,custom:false,inData:false}); });
   Object.keys(USER_GEN_MAP).forEach(c=>{ const e = set.get(c)||{builtin:false,custom:false,inData:false}; e.custom=true; set.set(c,e); });
-  // 数据中出现的 code（FLAT_ROWS 或 GEN_LIST）
+  // 数据中出现的 code（FLAT_ROWS 或 GEN_LIST）；命名来源（GENA 等）也纳入，供用户命名
   const dataCodes = new Set();
   if(GEN_LIST && GEN_LIST.length){
-    GEN_LIST.forEach(g=>g.codes.forEach(c=>dataCodes.add(c)));
+    GEN_LIST.forEach(g=>{
+      if(g.special) dataCodes.add(g.special);
+      else g.codes.forEach(c=>dataCodes.add(c));
+    });
   }
   dataCodes.forEach(c=>{ const e = set.get(c)||{builtin:false,custom:false,inData:false}; e.inData=true; set.set(c,e); });
   // 排序：数据中出现的优先，然后按字母
@@ -1015,12 +1033,16 @@ function renderGenEditorList(){
     const mergeInfo = mergedInto
       ? `<span class="tag merge-tag" title="已合并到 ${escHtml(mergeTarget)}">→ ${escHtml(mergeTarget)}</span>`
       : '';
+    // 命名来源（GENA 等大类）不参与分支合并，隐藏合并按钮
+    const isNamedSrc = /^GEN[A-Za-z]/.test(code);
+    const mergeBtn = isNamedSrc ? '' :
+      `<button class="btn btn-sm merge-btn" data-code="${escHtml(code)}" title="把该来源与另一个来源合并为同一显示">${mergedInto?'取消合并':'合并'}</button>`;
     row.innerHTML =
       `<span class="code" title="${escHtml(code)}">${escHtml(code)}</span>` +
       `<input type="text" value="${escHtml(name)}" placeholder="填写完整中文名" data-code="${escHtml(code)}" ${mergedInto?'disabled':''}>` +
       tag +
       mergeInfo +
-      `<button class="btn btn-sm merge-btn" data-code="${escHtml(code)}" title="把该来源与另一个来源合并为同一显示">${mergedInto?'取消合并':'合并'}</button>` +
+      mergeBtn +
       `<span class="del" title="删除该自定义名称">✕</span>`;
     list.appendChild(row);
   });
@@ -1453,18 +1475,20 @@ function tokenize(text){
 }
 
 function dedupCands(cands){
-  // 按 dst 去重，但保留所有不同 sheet 的信息合并为 types 列表
-  // 同时保留 split/headDst/tail 等扩展字段（拆词候选）
+  // 普通候选按 dst 去重（同译文合并类型来源）；
+  // 增强候选按 dst+原词 去重：不同原词剥出的相同核心词各自保留（归属模块不丢失）
   const map = new Map();
   for(const c of cands){
-    if(!map.has(c.dst)){
+    const key = c.enhance ? ('E\u0000' + c.dst + '\u0000' + (c.fullSrc||'')) : c.dst;
+    if(!map.has(key)){
       const o = {sheet:c.sheet, dst:c.dst, sheets:[c.sheet], id:c.id};
       if(c.special) o.special = c.special;
       if(c.srcOrig) o.srcOrig = c.srcOrig;
       if(c.split){ o.split = true; o.headDst = c.headDst; o.tail = c.tail; }
-      map.set(c.dst, o);
+      if(c.enhance){ o.enhance = true; o.fullSrc = c.fullSrc; o.fullDst = c.fullDst; }
+      map.set(key, o);
     }
-    else if(!map.get(c.dst).sheets.includes(c.sheet)) map.get(c.dst).sheets.push(c.sheet);
+    else if(!map.get(key).sheets.includes(c.sheet)) map.get(key).sheets.push(c.sheet);
   }
   return Array.from(map.values());
 }
@@ -1567,19 +1591,16 @@ function doTranslate(){
       }
       if(words.length !== len) continue; // 词数不足
       const phraseRaw = words.map(w=>w.raw).join(' ');
-      let hit = matchPhrase(phraseRaw, index, opts);
-      let enhanced = false;
-      // 普通索引未命中时，尝试增强索引（剥离前后缀后的核心词）
-      if(!hit && enhanceIndex){
-        hit = matchEnhance(phraseRaw, enhanceIndex, opts);
-        if(hit) enhanced = true;
-      }
-      if(hit){
+      const hit = matchPhrase(phraseRaw, index, opts);
+      // 增强索引：无论普通是否命中都尝试；普通候选与增强候选合并显示（互不覆盖）
+      const enhHit = enhanceIndex ? matchEnhance(phraseRaw, enhanceIndex, opts) : null;
+      if(hit || enhHit){
         const srcStart = words[0].start;
         const srcEnd = words[words.length-1].end;
-        // 拆词多译：短语整体命中时，检查首词能否单独命中不同译名（增强命中不适用，跳过）
-        const splitCands = enhanced ? [] : buildSplitCands(words, index, opts, hit.cands);
-        let allCands = dedupCands(hit.cands.concat(splitCands));
+        // 拆词多译：短语整体普通命中时，检查首词能否单独命中不同译名
+        const baseCands = hit ? hit.cands : [];
+        const splitCands = hit ? buildSplitCands(words, index, opts, baseCands) : [];
+        let allCands = dedupCands(baseCands.concat(splitCands, enhHit ? enhHit.cands : []));
         // 过滤掉被勾选跳过的特殊来源候选
         if(skipSpecials.size > 0){
           allCands = allCands.filter(c => !c.special || !skipSpecials.has(c.special));
@@ -1593,7 +1614,7 @@ function doTranslate(){
           }
         }
         // 补回被剥离的后缀（所有格 's / 句末标点 .）
-        const finalCands = allCands.map(c=>({ ...c, dst: c.dst + hit.suffix }));
+        const finalCands = allCands.map(c=>({ ...c, dst: c.dst + (hit || enhHit).suffix }));
         if(finalCands.length > 1){
           multiCount++;
           result.push({type:'multi', src:phraseRaw, srcStart, srcEnd, cands:finalCands});
@@ -1729,8 +1750,13 @@ function showMultiPopup(e, el, dstBox){
   let html = `<div class="title">「${escHtml(item.src)}」一词多译（${cands.length} 种）：</div>`;
   cands.forEach((c, idx)=>{
     const typeLabel = c.sheets.map(s=>s).join(', ');
-    // 特殊来源标注（问题6）：GENA→【动画】, GENS→【旁支】, GENM→【漫画】
-    const specialTag = c.special ? `<span class="special-tag">【${SPECIAL_SRC[c.special].cn}】</span>` : '';
+    // 特殊来源标注（问题6）：GENA→【动画】, GENS→【旁支】, GENM→【漫画】，自定义字母来源显示原码
+    const specialCn = c.special ? (SPECIAL_SRC[c.special] ? SPECIAL_SRC[c.special].cn : c.special) : null;
+    const specialTag = specialCn ? `<span class="special-tag">【${escHtml(specialCn)}】</span>` : '';
+    // 增强候选：显示归属的原词（剥离前后缀前的完整词）
+    const enhTag = c.enhance
+      ? `<span class="enh-tag" title="由原词「${escHtml(c.fullSrc||'')}」剥离前后缀得到（原词译文：${escHtml(c.fullDst||'')}）">⇐ ${escHtml(c.fullSrc||'')}</span>`
+      : '';
     let labelHtml;
     if(c.split){
       // 拆词候选：类型标签贴在翻译的首词后，尾缀保留原文样式
@@ -1739,7 +1765,7 @@ function showMultiPopup(e, el, dstBox){
                   `<span class="tail"> ${escHtml(c.tail)}</span>`;
     } else {
       labelHtml = `<span>${escHtml(c.dst)}</span>` +
-                  `<span class="type-tag">${escHtml(typeLabel)}</span>` + specialTag;
+                  `<span class="type-tag">${escHtml(typeLabel)}</span>` + specialTag + enhTag;
     }
     html += `<div class="opt" data-idx="${idx}" data-full="0">` + labelHtml + `</div>`;
   });
@@ -1807,6 +1833,19 @@ let _viewRenderCount = 0;     // 当前渲染行数
 let _viewVisibleCount = 20;   // 可视行数（随窗口高度自适应）
 let _viewTotal = 0;           // 筛选总数
 
+// 术语查找文字搜索：归一化选项（忽略大小写+全半角）
+const _VIEW_SEARCH_OPTS = {ignoreCase:true, ignoreSpace:false, ignoreUnder:false, ignoreHyphen:false, ignoreWidth:true};
+let _viewSearchTimer = null;
+function onViewSearch(){
+  clearTimeout(_viewSearchTimer);
+  _viewSearchTimer = setTimeout(()=>{ currentViewPage = 1; renderView(); }, 200);
+}
+function clearViewSearch(){
+  const inp = document.getElementById('viewSearch');
+  if(inp && inp.value){ inp.value = ''; currentViewPage = 1; renderView(); }
+  else if(inp){ inp.focus(); }
+}
+
 function renderView(){
   if(!workbook) return;
   const types = getChips('vtype').filter(c=>c.classList.contains('on')).map(c=>c.dataset.val);
@@ -1842,6 +1881,23 @@ function renderView(){
       }
       filtered.push(item);
     }
+  }
+  // 文字搜索：匹配任意列（忽略大小写与全半角）
+  const searchInp = document.getElementById('viewSearch');
+  const kw = (searchInp && searchInp.value.trim()) ? normKey(searchInp.value.trim(), _VIEW_SEARCH_OPTS) : '';
+  if(kw){
+    const out = [];
+    for(const item of filtered){
+      const r = item.row;
+      let ok = false;
+      for(const k of LANG_KEYS){
+        const v = r[k];
+        if(v == null || v === '') continue;
+        if(normKey(String(v), _VIEW_SEARCH_OPTS).indexOf(kw) >= 0){ ok = true; break; }
+      }
+      if(ok) out.push(item);
+    }
+    filtered = out;
   }
   _viewFiltered = filtered;
   _viewTotal = filtered.length;
