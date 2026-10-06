@@ -33,6 +33,8 @@ header .sub{font-size:13px; opacity:.9;}
 .card{background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px; margin-bottom:16px; box-shadow:var(--shadow);}
 .card h2{font-size:16px; margin-bottom:12px; padding-bottom:10px; border-bottom:2px solid var(--chip); color:var(--accent2);}
 .card h2.collapsible{cursor:pointer; user-select:none; display:flex; align-items:center; justify-content:space-between; gap:8px;}
+/* 术语列表标题栏：标题 + 统计 + 查看来源列开关同行 */
+.card h2.view-list-head{padding-bottom:10px; margin-bottom:10px;}
 /* 图鉴标题栏：标题 + 右侧工具（勾选/按钮/统计）同行 */
 .card h2.dex-toolbar-head{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; border-bottom:none; padding-bottom:0; margin-bottom:2px;}
 .card h2.dex-toolbar-head .dex-head-tools{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
@@ -66,6 +68,12 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .src-hl{background:#fff59d; color:#8d6e00; border-radius:3px; padding:0 1px; transition:background .3s;}
 .src-hl.flash{background:#ffd54f;}
 .btn-bar{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
+/* 翻译操作按钮分组布局 */
+.trans-actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; padding-top:12px; border-top:1px dashed var(--border);}
+.ta-group{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; background:#f7f8fc; border:1px solid var(--border); border-radius:9px;}
+.ta-label{font-size:12px; font-weight:600; color:var(--muted); padding:0 2px;}
+.ta-group .btn{padding:5px 10px; font-size:13px;}
+.ta-go{margin-left:auto; padding:9px 22px; font-size:15px;}
 .desc{color:var(--muted); font-size:12px; margin-top:8px;}
 .hl-red{background:#ffebee; color:var(--red); border-bottom:2px solid var(--red); cursor:pointer; padding:0 2px; border-radius:3px;}
 .hl-amber{background:#fff8e1; color:#b3541e; border-bottom:2px solid var(--amber); cursor:pointer; padding:0 2px; border-radius:3px;}
@@ -158,7 +166,7 @@ input[type=file]{display:none;}
 .desc-row{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px;}
 .desc-row .desc-text{flex:1 1 auto; min-width:120px; line-height:1.8;}
 .desc-row .desc-text.trad{color:var(--muted);}
-.desc-row .tags-inline{display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-left:auto;}
+.desc-row .tags-inline{display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-left:6px;}
 .dex-entry-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 .dex-entry .ver-tag{font-size:12px; font-weight:600; color:var(--accent2); background:var(--chip); border-radius:5px; padding:2px 8px;}
 .dex-entry .zy-tag{font-size:11px; border-radius:5px; padding:1px 7px; font-weight:600;}
@@ -180,10 +188,14 @@ input[type=file]{display:none;}
 td .src-chip{display:inline-block; font-size:11px; font-weight:600; border-radius:5px; padding:1px 7px; margin:1px 2px 1px 0; white-space:nowrap;}
 td .src-chip.src-sheet{background:#f3e8ff; color:#7c4dff;}
 td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
-/* 图鉴浮动窗口（flex-wrap 布局，不依赖 grid；条目强制一行两个、超长省略） */
+/* 图鉴浮动窗口（flex-wrap 布局，不依赖 grid；条目强制一行两个、超长省略；可拖动、可收起） */
 .dex-float{position:fixed; right:18px; bottom:24px; width:250px; max-height:60vh; overflow:hidden; display:flex; flex-direction:column; background:#fff; border:1px solid var(--border); border-radius:12px; box-shadow:0 8px 28px rgba(30,40,80,.16); z-index:900;}
-.dex-float-top{flex-shrink:0; display:block; width:100%; box-sizing:border-box; padding:10px 12px; border:none; background:var(--accent); color:#fff; font-size:13px; font-weight:600; cursor:pointer; border-radius:11px 11px 0 0; text-align:center;}
-.dex-float-top:hover{opacity:.9;}
+.dex-float-bar{flex-shrink:0; display:flex; align-items:center; gap:6px; padding:6px 8px; background:var(--accent); color:#fff; cursor:move; user-select:none; border-radius:11px 11px 0 0;}
+.dex-float-title{flex:1; font-size:12px; font-weight:600; padding-left:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.dex-float-btn{flex-shrink:0; border:none; background:rgba(255,255,255,.18); color:#fff; font-size:11px; font-weight:600; padding:2px 8px; border-radius:5px; cursor:pointer; line-height:1.4;}
+.dex-float-btn:hover{background:rgba(255,255,255,.32);}
+.dex-float.collapsed .dex-float-list{display:none;}
+.dex-float.collapsed .dex-float-bar{border-radius:11px;}
 .dex-float-list{flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:8px; display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start;}
 .dex-float-item{box-sizing:border-box; flex:1 1 calc(50% - 3px); max-width:calc(50% - 2.5px); min-width:0; display:flex; flex-direction:row; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; line-height:1.4; white-space:nowrap; overflow:hidden; color:var(--text);}
 .dex-float-item:hover{background:var(--accent); color:#fff;}
@@ -296,24 +308,33 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         </div>
       </div>
       <div class="desc" id="transInfo"></div>
-      <div class="btn-bar">
-        <button class="btn" onclick="pasteSrcText(this)">📥 粘贴源文本</button>
-        <button class="btn" onclick="copyText('srcText', this)">📋 复制源文本</button>
-        <button class="btn" onclick="copyText('dstText', this)">📋 复制译文</button>
-        <button class="btn" onclick="clearText('srcText')">🗑 清空源文本</button>
-        <button class="btn" onclick="clearText('dstText')">🗑 清空译文</button>
-        <button class="btn" onclick="removeBlankLines()">🧹 清除文字间空行</button>
-        <button class="btn" onclick="convertWidth('srcText')">Ａａ 源文本全半角转换</button>
-        <button class="btn" onclick="convertWidth('dstText')">Ａａ 译文全半角转换</button>
-        <button class="btn btn-primary" onclick="doTranslate()">🚀 开始翻译</button>
+      <div class="btn-bar trans-actions">
+        <div class="ta-group">
+          <span class="ta-label">源文本</span>
+          <button class="btn" onclick="pasteSrcText(this)">📥 粘贴</button>
+          <button class="btn" onclick="copyText('srcText', this)">📋 复制</button>
+          <button class="btn" onclick="clearText('srcText')">🗑 清空</button>
+          <button class="btn" onclick="convertWidth('srcText')">Ａａ 全半角</button>
+        </div>
+        <div class="ta-group">
+          <span class="ta-label">译文</span>
+          <button class="btn" onclick="copyText('dstText', this)">📋 复制</button>
+          <button class="btn" onclick="clearText('dstText')">🗑 清空</button>
+          <button class="btn" onclick="convertWidth('dstText')">Ａａ 全半角</button>
+        </div>
+        <div class="ta-group">
+          <button class="btn" onclick="removeBlankLines()">🧹 清除空行</button>
+        </div>
+        <button class="btn btn-primary ta-go" onclick="doTranslate()">🚀 开始翻译</button>
       </div>
     </div>
   </div>
 
   <!-- ============ 术语查看模式 ============ -->
   <div class="panel" id="panel-view">
-    <div class="card">
-      <h2>筛选</h2>
+    <div class="card" id="card-view-filter">
+      <h2 class="collapsible" onclick="toggleCard(this)">筛选 <span class="fold-arrow">▼</span></h2>
+      <div class="card-body">
       <div style="margin-bottom:10px; display:flex; gap:8px; align-items:center;">
         <input type="text" id="viewSearch" placeholder="🔍 输入文字筛选术语（匹配任意列）" style="flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:8px; font-size:14px; font-family:inherit;" oninput="onViewSearch()">
         <button class="btn btn-sm" onclick="clearViewSearch()">清空</button>
@@ -347,23 +368,27 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
           <option value="500">500 条</option>
         </select>
       </div>
+      </div>
     </div>
 
-    <div class="card">
-      <h2>显示语言</h2>
+    <div class="card" id="card-view-lang">
+      <h2 class="collapsible" onclick="toggleCard(this)">显示语言 <span class="fold-arrow">▼</span></h2>
+      <div class="card-body">
       <div class="chip-group" id="viewLangChips"></div>
       <div class="btn-bar" style="margin-top:10px;">
         <button class="btn btn-sm" onclick="viewLangAll(true)">全选</button>
         <button class="btn btn-sm" onclick="viewLangAll(false)">全不选</button>
       </div>
-      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <label class="check"><input type="checkbox" id="optShowSrcCol" onchange="renderView()"> 查看来源列</label>
       </div>
     </div>
 
-    <div class="card">
-      <h2>术语列表</h2>
-      <div class="stats" id="viewStats"></div>
+    <div class="card" id="card-view-list">
+      <h2 class="view-list-head" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <span>术语列表</span>
+        <span class="stats" id="viewStats" style="margin:0;"></span>
+        <span style="flex:1;"></span>
+        <label class="check" style="font-size:13px;"><input type="checkbox" id="optShowSrcCol" onchange="renderView()"> 查看来源列</label>
+      </h2>
       <div class="tbl-wrap" id="tblWrap"></div>
       <div class="pager" id="pager"></div>
     </div>
@@ -372,13 +397,11 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
   <!-- ============ 图鉴模式 ============ -->
   <div class="panel" id="panel-dex">
     <div class="card">
-      <h2 class="dex-toolbar-head" style="border-bottom:none; padding-bottom:2px; margin-bottom:8px;">
-        <span>查找宝可梦</span>
-        <span class="dex-head-tools" style="flex:1 1 240px; max-width:480px;">
-          <span class="dex-search-wrap" style="flex:1; display:block;">
-            <input type="text" id="dexSearch" class="dex-search-input" style="padding:8px 12px; font-size:14px;" placeholder="编号 / 中文名（简繁）/ 拼音" autocomplete="off">
-            <div class="dex-suggest" id="dexSuggest"></div>
-          </span>
+      <h2 class="dex-toolbar-head" style="border-bottom:none; padding-bottom:2px; margin-bottom:8px; justify-content:flex-start;">
+        <span style="white-space:nowrap;">查找宝可梦</span>
+        <span class="dex-search-wrap" style="flex:1 1 260px; max-width:420px;">
+          <input type="text" id="dexSearch" class="dex-search-input" style="padding:8px 12px; font-size:14px;" placeholder="编号 / 中文名（简繁）/ 拼音" autocomplete="off">
+          <div class="dex-suggest" id="dexSuggest"></div>
         </span>
       </h2>
     </div>
@@ -437,9 +460,13 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
   </div>
 </div>
 
-<!-- 图鉴浮动窗口：滚动到图鉴说明部分时显示 -->
+<!-- 图鉴浮动窗口：滚动到图鉴说明部分时显示（可拖动、可收起） -->
 <div id="dexFloat" class="dex-float" style="display:none;">
-  <button class="dex-float-top" onclick="scrollToTop()" title="回到网页顶部">↑ 回到顶部</button>
+  <div class="dex-float-bar" id="dexFloatBar" title="拖动可移动窗口">
+    <span class="dex-float-title">图鉴导航</span>
+    <button class="dex-float-btn" onclick="scrollToTop()" title="回到网页顶部">↑ 顶部</button>
+    <button class="dex-float-btn" onclick="toggleDexFloatCollapse()" title="收起/展开" id="dexFloatCollapseBtn">—</button>
+  </div>
   <div class="dex-float-list" id="dexFloatList"></div>
 </div>
 
@@ -1628,6 +1655,22 @@ function doTranslate(){
       }
     }
     if(!matched){
+      // 增强翻译 + 日文：整词拆分翻译（把无法整体命中的日文词拆成「可翻译前缀 + 剩余原文」）
+      if(enhanceIndex && tok.type === 'word' && /[\u3040-\u30ff]/.test(tok.raw)){
+        const split = trySplitJapaneseWord(tok.raw, index, enhanceIndex, opts, skipSpecials);
+        if(split){
+          const finalCands = split.cands.map(c=>({ ...c, dst: c.dst }));
+          if(finalCands.length > 1){
+            multiCount++;
+            result.push({type:'multi', src:tok.raw, srcStart:tok.start, srcEnd:tok.end, cands:finalCands});
+          } else {
+            hitCount++;
+            result.push({type:'plain', src:tok.raw, srcStart:tok.start, srcEnd:tok.end, dst:finalCands[0].dst, cands:finalCands});
+          }
+          i++;
+          continue;
+        }
+      }
       missCount++;
       result.push(tok.raw);
       i++;
@@ -1637,6 +1680,7 @@ function doTranslate(){
   document.getElementById('transInfo').textContent =
     `共翻译 ${hitCount} 处术语` +
     (multiCount>0 ? `，${multiCount} 处一词多译（红色，点击切换）` : '') +
+    (enhanceOn ? `（琥珀色=增强翻译，点击看原词出处）` : '') +
     (skipCount>0 ? `，${skipCount} 处特殊来源词已跳过（保留原文）` : '') +
     (missCount>0 ? `，${missCount} 处未匹配（保留原文）` : '');
 }
@@ -1659,6 +1703,42 @@ function matchEnhance(phraseRaw, enhIndex, opts){
     if(enhIndex.has(mk.key)){
       return { cands: dedupCands(enhIndex.get(mk.key)), suffix: mk.suffix };
     }
+  }
+  return null;
+}
+
+// 日文整词拆分翻译：一个无法整体命中的日文词，尝试拆成「可翻译前缀 + 剩余原文」。
+// 前缀优先走增强索引（剥离前后缀后的核心词映射），普通索引兜底；取最长可翻译前缀。
+// 例：タンバグリーンズ → 前缀「タンバ」命中增强索引（→湛蓝），剩余「グリーンズ」保留原文。
+function trySplitJapaneseWord(word, index, enhanceIndex, opts, skipSpecials){
+  if(!word || word.length < 2) return null;
+  const str = String(word);
+  // 从最长前缀开始（留至少 1 个字符做剩余部分）
+  for(let i = str.length - 1; i >= 1; i--){
+    const prefix = str.slice(0, i);
+    const rest = str.slice(i);
+    let cands = null;
+    const eh = matchEnhance(prefix, enhanceIndex, opts);
+    if(eh && eh.cands.length) cands = eh.cands;
+    else {
+      const ph = matchPhrase(prefix, index, opts);
+      if(ph && ph.cands.length) cands = ph.cands;
+    }
+    if(!cands || !cands.length) continue;
+    // 过滤被跳过的特殊来源
+    let use = cands;
+    if(skipSpecials.size > 0){
+      use = cands.filter(c => !c.special || !skipSpecials.has(c.special));
+      if(use.length === 0) continue;
+    }
+    // 前缀译文 + 剩余原文
+    const out = use.map(c => {
+      const o = Object.assign({}, c, { dst: c.dst + rest });
+      if(c.enhance) o.fullSrc = c.fullSrc;   // 保留原词出处（整词原文）
+      if(c.split) { o.split = true; o.headDst = c.headDst; o.tail = c.tail + rest; }
+      return o;
+    });
+    return { cands: dedupCands(out) };
   }
   return null;
 }
@@ -1686,7 +1766,7 @@ function buildSplitCands(words, index, opts, baseCands){
   return out;
 }
 
-// 渲染输出，红色高亮标记多译词；plain 词也可点击定位到源文本
+// 渲染输出，红色高亮标记多译词；plain 词也可点击定位到源文本；增强来源词（琥珀色）点击看原词出处
 function renderDst(result, dstBox){
   let html = '';
   let seq = 0;
@@ -1695,9 +1775,17 @@ function renderDst(result, dstBox){
   for(const item of result){
     if(typeof item === 'string'){ html += escHtml(item); }
     else if(item.type === 'plain'){
-      const id = 'p' + (seq++);
-      html += `<span class="hl-plain" data-plain="${id}" title="点击定位到源文本">${escHtml(item.dst)}</span>`;
-      dstBox._plain[id] = item;
+      // 若该词来自增强翻译（有原词出处），点击弹出出处窗口（与一词多译同款）
+      const hasEnhanceOrigin = item.cands && item.cands.some(c => c.enhance);
+      if(hasEnhanceOrigin){
+        const id = 'm' + (seq++);
+        html += `<span class="hl-amber" data-multi="${id}" title="点击查看原词出处">${escHtml(item.dst)}</span>`;
+        dstBox._multi[id] = item;
+      } else {
+        const id = 'p' + (seq++);
+        html += `<span class="hl-plain" data-plain="${id}" title="点击定位到源文本">${escHtml(item.dst)}</span>`;
+        dstBox._plain[id] = item;
+      }
     }
     else if(item.type === 'multi'){
       const id = 'm' + (seq++);
@@ -1707,8 +1795,8 @@ function renderDst(result, dstBox){
   }
   dstBox.innerHTML = html;
   dstBox._multis = dstBox._multi;
-  // 多译词：点击弹出切换
-  dstBox.querySelectorAll('.hl-red').forEach(el=>{
+  // 多译词 / 增强来源词：点击弹出窗口（一词多译与增强原词提示并存）
+  dstBox.querySelectorAll('.hl-red, .hl-amber').forEach(el=>{
     el.onclick = (e)=>{ e.stopPropagation(); showMultiPopup(e, el, dstBox); };
   });
   // 普通翻译词：点击定位到源文本并高亮
@@ -1747,15 +1835,19 @@ function showMultiPopup(e, el, dstBox){
   if(!item) return;
   const pop = document.getElementById('popup');
   const cands = item.cands;
-  let html = `<div class="title">「${escHtml(item.src)}」一词多译（${cands.length} 种）：</div>`;
+  // 单个候选且为增强来源 → 显示「原词出处」；多个候选 → 一词多译（增强原词并存显示）
+  const isSingleEnhance = item.type === 'plain' && cands.length === 1 && cands[0].enhance;
+  let html = isSingleEnhance
+    ? `<div class="title">「${escHtml(item.src)}」的原词出处：</div>`
+    : `<div class="title">「${escHtml(item.src)}」一词多译（${cands.length} 种）：</div>`;
   cands.forEach((c, idx)=>{
     const typeLabel = c.sheets.map(s=>s).join(', ');
     // 特殊来源标注（问题6）：GENA→【动画】, GENS→【旁支】, GENM→【漫画】，自定义字母来源显示原码
     const specialCn = c.special ? (SPECIAL_SRC[c.special] ? SPECIAL_SRC[c.special].cn : c.special) : null;
     const specialTag = specialCn ? `<span class="special-tag">【${escHtml(specialCn)}】</span>` : '';
-    // 增强候选：显示归属的原词（剥离前后缀前的完整词）
+    // 增强候选：显示归属的原词（剥离前后缀前的完整词，优先显示目标语言的完整词）
     const enhTag = c.enhance
-      ? `<span class="enh-tag" title="由原词「${escHtml(c.fullSrc||'')}」剥离前后缀得到（原词译文：${escHtml(c.fullDst||'')}）">⇐ ${escHtml(c.fullSrc||'')}</span>`
+      ? `<span class="enh-tag" title="由原词「${escHtml(c.fullSrc||'')}」剥离前后缀得到（原词译文：${escHtml(c.fullDst||'')}）">⇐ ${escHtml(c.fullDst || c.fullSrc || '')}</span>`
       : '';
     let labelHtml;
     if(c.split){
@@ -1799,7 +1891,7 @@ function positionPopup(pop, x, y){
 function hidePopup(){ document.getElementById('popup').style.display='none'; }
 document.addEventListener('click', e=>{
   const pop = document.getElementById('popup');
-  if(!pop.contains(e.target) && !e.target.classList.contains('hl-red')) pop.style.display='none';
+  if(!pop.contains(e.target) && !e.target.classList.contains('hl-red') && !e.target.classList.contains('hl-amber')) pop.style.display='none';
 });
 
 // 替换：full=false 只换当前这一处；full=true 替换本文中所有“源词相同”的多译词
@@ -2733,35 +2825,76 @@ function bindDexInfiniteScroll(){
 // ===================== 图鉴浮动窗口 =====================
 let _dexFloatPokes = [];  // 已渲染的宝可梦 [{id, form, name}]
 
-// 更新浮动窗内容（宝可梦编号+名字，一行两个）
+// 更新浮动窗内容（宝可梦编号+名字，一行两个；按 id 去重，只定位本体形态）
 function updateDexFloat(){
   const list = document.getElementById('dexFloatList');
   if(!list) return;
-  // 只显示「已渲染」的宝可梦（即 _dexRenderGroups 前 _dexRenderCount 个）
-  const pokes = [];
+  // 只显示「已渲染」的宝可梦（即 _dexRenderGroups 前 _dexRenderCount 个），按 id 去重（形态不考虑）
+  const seen = new Map();
   for(let i = 0; i < _dexRenderCount && i < _dexRenderGroups.length; i++){
     const p = _dexRenderGroups[i].p;
+    if(seen.has(p.id)) continue;
     const nm = _dexLang==='simpl' ? p.name : ( _dexLang==='trad' ? p.nameTrad : p.name );
-    pokes.push({ id:p.id, form:p.form, name:nm });
+    // 优先用本体（form==='00'）的名字展示，避免形态名污染导航
+    seen.set(p.id, { id:p.id, form:'00', name:nm });
   }
+  const pokes = Array.from(seen.values());
   _dexFloatPokes = pokes;
   if(pokes.length === 0){ list.innerHTML = ''; return; }
   list.innerHTML = pokes.map(p =>
-    `<div class="dex-float-item" data-id="${p.id}" data-form="${p.form}" title="#${String(p.id).padStart(4,'0')} ${escHtml(p.name)}">
-      <span class="fno">#${String(p.id).padStart(4,'0')}</span>
+    `<div class="dex-float-item" data-id="${p.id}" title="#${p.id} ${escHtml(p.name)}">
+      <span class="fno">#${p.id}</span>
       <span class="fname">${escHtml(p.name)}</span>
     </div>`
   ).join('');
   list.querySelectorAll('.dex-float-item').forEach(el=>{
-    el.onclick = ()=> jumpToDexPoke(el.dataset.id, el.dataset.form);
+    el.onclick = ()=> jumpToDexPoke(el.dataset.id);
   });
 }
 
-// 跳转到对应宝可梦的图鉴说明
-function jumpToDexPoke(id, form){
-  const target = document.getElementById(`dex-poke-${id}_${form}`);
+// 跳转到对应宝可梦的图鉴说明（优先定位本体形态）
+function jumpToDexPoke(id){
+  const target = document.getElementById(`dex-poke-${id}_00`) || document.querySelector(`[id^="dex-poke-${id}_"]`);
   if(target){ target.scrollIntoView({ behavior:'smooth', block:'start' }); }
 }
+
+// 浮动窗收起/展开
+function toggleDexFloatCollapse(){
+  const f = document.getElementById('dexFloat');
+  const btn = document.getElementById('dexFloatCollapseBtn');
+  const collapsed = f.classList.toggle('collapsed');
+  if(btn) btn.textContent = collapsed ? '＋' : '—';
+}
+
+// 浮动窗拖动
+(function initDexFloatDrag(){
+  document.addEventListener('mousedown', (e)=>{
+    const bar = e.target.closest && e.target.closest('#dexFloatBar');
+    if(!bar) return;
+    const f = document.getElementById('dexFloat');
+    if(!f) return;
+    e.preventDefault();
+    const rect = f.getBoundingClientRect();
+    const dx = e.clientX - rect.left;
+    const dy = e.clientY - rect.top;
+    f.style.right = 'auto';
+    f.style.bottom = 'auto';
+    f.style.left = rect.left + 'px';
+    f.style.top = rect.top + 'px';
+    const onMove = (ev)=>{
+      let nx = ev.clientX - dx;
+      let ny = ev.clientY - dy;
+      nx = Math.max(0, Math.min(nx, window.innerWidth - rect.width));
+      ny = Math.max(0, Math.min(ny, window.innerHeight - 30));
+      f.style.left = nx + 'px';
+      f.style.top = ny + 'px';
+    };
+    const onUp = ()=>{ document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); document.body.style.userSelect=''; };
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+})();
 
 // 回到网页顶部
 function scrollToTop(){
@@ -2827,12 +2960,16 @@ function buildDexPokeSel(){
   el.innerHTML = '';
   if(_dexGenFilter === null){ wrap.style.display = 'none'; return; }
   wrap.style.display = 'block';
-  // 该世代下所有本体宝可梦（form==='00'，去重）
-  const seen = new Map(); // id -> name
+  // 该世代下所有本体宝可梦（form==='00'，去重），及其全部形态
+  const seen = new Map(); // id -> 本体 {id, form, name, nameTrad, gen}
+  const formsByPoke = new Map(); // id -> [形态对象...]（含本体，按 form 排序）
   POKEDEX_INDEX.pokemon.forEach(p=>{
-    if(p.gen === _dexGenFilter && p.form === '00' && !seen.has(p.id)){
+    if(p.gen !== _dexGenFilter) return;
+    if(!seen.has(p.id) && p.form === '00'){
       seen.set(p.id, p);
     }
+    if(!formsByPoke.has(p.id)) formsByPoke.set(p.id, []);
+    formsByPoke.get(p.id).push(p);
   });
   const list = Array.from(seen.values()).sort((a,b)=>a.id-b.id);
   if(list.length === 0){
@@ -2845,12 +2982,34 @@ function buildDexPokeSel(){
   all.onclick = ()=>{ _dexSelected = null; el.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on', c===all)); renderDexEntries(); };
   el.appendChild(all);
   list.forEach(p=>{
-    const d = document.createElement('div');
-    d.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id ? ' on' : '');
+    // 该宝可梦的所有形态（含本体，按 form 升序）
+    const forms = (formsByPoke.get(p.id)||[]).slice().sort((a,b)=>parseInt(a.form)-parseInt(b.form));
     const nm = _dexLang==='simpl' ? p.name : p.nameTrad;
-    d.textContent = String(p.id).padStart(4,'0') + ' ' + nm;
-    d.onclick = ()=>{ selectDexPoke(p.id, '00'); };
-    el.appendChild(d);
+
+    // 选项1：所有形态
+    const allF = document.createElement('div');
+    allF.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === 'all' ? ' on' : '');
+    allF.textContent = `${p.id} ${nm}（所有形态）`;
+    allF.onclick = ()=>{ selectDexPoke(p.id, 'all'); };
+    el.appendChild(allF);
+
+    // 选项2：本体（form 00）
+    const base = document.createElement('div');
+    base.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === '00' ? ' on' : '');
+    base.textContent = `${p.id} ${nm}`;
+    base.onclick = ()=>{ selectDexPoke(p.id, '00'); };
+    el.appendChild(base);
+
+    // 选项3..：每个非本体形态
+    forms.forEach(f=>{
+      if(f.form === '00') return;
+      const fn = _dexLang==='simpl' ? f.name : f.nameTrad;
+      const d = document.createElement('div');
+      d.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === f.form ? ' on' : '');
+      d.textContent = `${p.id} ${fn}`;
+      d.onclick = ()=>{ selectDexPoke(p.id, f.form); };
+      el.appendChild(d);
+    });
   });
 }
 
@@ -2966,7 +3125,7 @@ function dexSearchSuggest(query, sug){
       const nm = _dexLang==='simpl' ? p.name : ( _dexLang==='trad' ? p.nameTrad : p.name );
       const trad = _dexLang==='simpl' ? p.nameTrad : p.name;
       return `<div class="dex-suggest-item" data-id="${p.id}" data-form="${p.form}">
-        <span class="no">#${String(p.id).padStart(4,'0')}</span>
+        <span class="no">#${p.id}</span>
         <span class="nm">${escHtml(nm)}${trad!==nm?`<span class="trad">${escHtml(trad)}</span>`:''}</span>
         <span class="tag">${genNameOf(p.gen)}</span>
       </div>`;
@@ -2986,14 +3145,21 @@ function genNameOf(g){
   return gen ? gen.name : '';
 }
 
-// 选择宝可梦（含形态）
+// 选择宝可梦（含形态；form 可为 'all' 表示该 id 所有形态）
 function selectDexPoke(id, form){
-  const p = POKEDEX_INDEX.pokemon.find(x=>x.id===id && x.form===form);
-  if(!p){ return; }
-  _dexSelected = p;
+  const base = POKEDEX_INDEX.pokemon.find(x=>x.id===id && x.form==='00');
+  if(form === 'all'){
+    if(!base){ return; }
+    // 记录「所有形态」选择：用本体对象 + form 标记 'all'
+    _dexSelected = Object.assign({}, base, { form:'all' });
+  } else {
+    const p = POKEDEX_INDEX.pokemon.find(x=>x.id===id && x.form===form);
+    if(!p){ return; }
+    _dexSelected = p;
+  }
   // 在搜索框显示当前选中的名字（方便清空回到全部）
   const inp = document.getElementById('dexSearch');
-  if(inp) inp.value = _dexLang==='simpl' ? p.name : p.nameTrad;
+  if(inp) inp.value = _dexLang==='simpl' ? base.name : base.nameTrad;
   renderDexEntries();
 }
 
@@ -3051,7 +3217,15 @@ function renderDescText(desc, descTrad, tagsSimpl, tagsTrad){
 
 // 收集当前应显示的宝可梦（含形态）列表
 function collectDexPokes(){
-  if(_dexSelected) return [_dexSelected];
+  if(_dexSelected){
+    // 选中「所有形态」：返回该 id 的全部形态
+    if(_dexSelected.form === 'all'){
+      const list = POKEDEX_INDEX.pokemon.filter(x=>x.id === _dexSelected.id);
+      list.sort((a,b)=>parseInt(a.form)-parseInt(b.form));
+      return list;
+    }
+    return [_dexSelected];
+  }
   // 未选中：显示所有本体宝可梦（form==='00'），受世代筛选约束
   const list = [];
   POKEDEX_INDEX.pokemon.forEach(p=>{
@@ -3190,13 +3364,13 @@ function appendDexBatch(){
 
     if(single){
       html += `<div class="dex-detail-head" id="dex-poke-${p.id}_${p.form}">
-        <span class="big-no">#${String(p.id).padStart(4,'0')}</span>
+        <span class="big-no">#${p.id}</span>
         <span class="big-name">${escHtml(nm)}${trad!==nm?`<span class="trad">${escHtml(trad)}</span>`:''}</span>
         <span class="tag" style="background:var(--chip);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:12px;">${genNameOf(p.gen)}</span>
       </div>`;
     } else {
       html += `<div class="dex-poke-group-head" id="dex-poke-${p.id}_${p.form}">
-        <span class="big-no" style="font-size:18px;">#${String(p.id).padStart(4,'0')}</span>
+        <span class="big-no" style="font-size:18px;">#${p.id}</span>
         <span class="big-name" style="font-size:17px;">${escHtml(nm)}${trad!==nm?`<span class="trad">${escHtml(trad)}</span>`:''}</span>
         <span class="tag" style="background:var(--chip);color:var(--accent2);border-radius:5px;padding:2px 8px;font-size:11px;">${genNameOf(p.gen)}</span>
       </div>`;
@@ -3244,10 +3418,10 @@ function renderEntryListHtml(list, single){
         const vo = dexVerMap().get(vv);
         return _dexLang==='trad' ? vv : (vo ? vo.simp : vv);
       });
-      // 版本标签（整体信息，仅放一行）；官译标签按简/繁视角各放对应行
+      // 官译标签紧跟说明（放前面），版本标签保持位置不变（放行尾），简繁两行都带上
       const verTags = verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('');
-      const tagsS = verTags + `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>`;
-      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>`;
+      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verTags;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verTags;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
           ${renderDescText(v.d.d, v.d.t, tagsS, tagsT)}
@@ -3262,8 +3436,9 @@ function renderEntryListHtml(list, single){
       const zyT = zyLabelFor(it.d, 'trad');
       const vo = _dexVersions[it.verIdx];
       const verName = _dexLang==='trad' ? (vo?vo.name:'') : (vo?vo.simp:'');
-      const tagsS = `<span class="ver-tag">${escHtml(verName)}</span><span class="zy-tag ${zyS.cls}">${zyS.label}</span>`;
-      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>`;
+      const verTag = `<span class="ver-tag">${escHtml(verName)}</span>`;
+      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verTag;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verTag;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
           ${renderDescText(it.d.d, it.d.t, tagsS, tagsT)}
