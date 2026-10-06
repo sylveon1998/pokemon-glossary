@@ -162,9 +162,9 @@ input[type=file]{display:none;}
 .dex-entry-main{display:flex; flex-direction:column; gap:6px;}
 .dex-entry-main .desc{font-size:15px; line-height:1.8; color:var(--text); width:100%;}
 .dex-entry-tags{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
-/* 说明行：文本 + 行尾标签，标签放不下时自动换到本行下一行（不干扰另一语言行） */
+/* 说明行：文本 + 紧跟其后的标签（标签不推到行尾，跟在说明文字后面；放不下时自动换行） */
 .desc-row{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px;}
-.desc-row .desc-text{flex:1 1 auto; min-width:120px; line-height:1.8;}
+.desc-row .desc-text{flex:0 1 auto; min-width:0; line-height:1.8;}
 .desc-row .desc-text.trad{color:var(--muted);}
 .desc-row .tags-inline{display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-left:6px;}
 .dex-entry-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
@@ -274,23 +274,24 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
           <div class="chip-group" id="dstLangChips"></div>
         </div>
       </div>
-      <div class="btn-bar" style="margin-top:14px;">
+      <div class="btn-bar" style="margin-top:14px; align-items:center;">
         <label class="check"><input type="checkbox" id="optIgnoreCase" checked> 无视大小写</label>
         <label class="check"><input type="checkbox" id="optIgnoreSpace"> 无视空格</label>
         <label class="check"><input type="checkbox" id="optIgnoreUnder"> 无视下划线</label>
         <label class="check"><input type="checkbox" id="optIgnoreHyphen"> 无视连接符（-）</label>
         <label class="check"><input type="checkbox" id="optIgnoreWidth" checked> 无视全半角</label>
-      </div>
-      <div class="btn-bar" style="margin-top:6px;">
         <button class="btn btn-sm" onclick="optSelectAll(true)">全选</button>
         <button class="btn btn-sm" onclick="optSelectAll(false)">全不选</button>
         <button class="btn btn-sm" onclick="optInvert()">反选</button>
       </div>
-      <div class="btn-bar" style="margin-top:14px; padding-top:10px; border-top:1px dashed var(--border);">
+      <div class="btn-bar" style="margin-top:6px; padding-top:10px; border-top:1px dashed var(--border); align-items:center;">
         <label class="check" title="仅简中/繁中/日文/英文间生效。自动剥离市/镇/岛等地名后缀和宝可梦/Poké等前后缀，让核心词也能直接翻译（如输入 マサラ → 真新）"><input type="checkbox" id="optEnhance" onchange="onEnhanceToggle()"> 增强翻译</label>
-        <label class="check" title="勾选后，动画来源（GENA）的词保留原文不翻译"><input type="checkbox" id="optSkipGENA"> 跳过动画</label>
-        <label class="check" title="勾选后，旁支游戏来源（GENS）的词保留原文不翻译"><input type="checkbox" id="optSkipGENS"> 跳过旁支</label>
-        <label class="check" title="勾选后，漫画来源（GENM）的词保留原文不翻译"><input type="checkbox" id="optSkipGENM"> 跳过漫画</label>
+        <label class="check" title="勾选后，动画来源（GENA）的词保留原文不翻译"><input type="checkbox" id="optSkipGENA"> 忽略动画</label>
+        <label class="check" title="勾选后，旁支游戏来源（GENS）的词保留原文不翻译"><input type="checkbox" id="optSkipGENS"> 忽略旁支</label>
+        <label class="check" title="勾选后，漫画来源（GENM）的词保留原文不翻译"><input type="checkbox" id="optSkipGENM"> 忽略漫画</label>
+        <button class="btn btn-sm" onclick="enhSelectAll(true)">全选</button>
+        <button class="btn btn-sm" onclick="enhSelectAll(false)">全不选</button>
+        <button class="btn btn-sm" onclick="enhInvert()">反选</button>
       </div>
       </div>
     </div>
@@ -358,16 +359,6 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         </div>
         <div class="gen-list" id="genChips"></div>
       </div>
-      <div class="row" style="align-items:center;">
-        <div style="font-weight:600;">每页显示：</div>
-        <select id="pageSize" onchange="renderView()">
-          <option value="0">全部</option>
-          <option value="100">100 条</option>
-          <option value="200">200 条</option>
-          <option value="300">300 条</option>
-          <option value="500">500 条</option>
-        </select>
-      </div>
       </div>
     </div>
 
@@ -375,10 +366,6 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
       <h2 class="collapsible" onclick="toggleCard(this)">显示语言 <span class="fold-arrow">▼</span></h2>
       <div class="card-body">
       <div class="chip-group" id="viewLangChips"></div>
-      <div class="btn-bar" style="margin-top:10px;">
-        <button class="btn btn-sm" onclick="viewLangAll(true)">全选</button>
-        <button class="btn btn-sm" onclick="viewLangAll(false)">全不选</button>
-      </div>
       </div>
     </div>
 
@@ -387,6 +374,16 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         <span>术语列表</span>
         <span class="stats" id="viewStats" style="margin:0;"></span>
         <span style="flex:1;"></span>
+        <span style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;">
+          每页显示
+          <select id="pageSize" onchange="renderView()" style="padding:4px 8px; font-weight:400;">
+            <option value="0">全部</option>
+            <option value="100">100 条</option>
+            <option value="200">200 条</option>
+            <option value="300">300 条</option>
+            <option value="500">500 条</option>
+          </select>
+        </span>
         <label class="check" style="font-size:13px;"><input type="checkbox" id="optShowSrcCol" onchange="renderView()"> 查看来源列</label>
       </h2>
       <div class="tbl-wrap" id="tblWrap"></div>
@@ -890,6 +887,17 @@ function optSelectAll(on){
 function optInvert(){
   getOptChecks().forEach(c=>c.checked = !c.checked);
 }
+// 增强/忽略来源选项组（增强翻译+忽略动画/旁支/漫画）全选/全不选/反选
+function getEnhChecks(){
+  return ['optEnhance','optSkipGENA','optSkipGENS','optSkipGENM']
+    .map(id=>document.getElementById(id)).filter(Boolean);
+}
+function enhSelectAll(on){
+  getEnhChecks().forEach(c=>c.checked = on);
+}
+function enhInvert(){
+  getEnhChecks().forEach(c=>c.checked = !c.checked);
+}
 function viewLangAll(on){
   getChips('vlang').forEach(c=>c.classList.toggle('on', on));
 }
@@ -948,6 +956,12 @@ function buildLangChips(){
     d.onclick=()=>{ d.classList.toggle('on'); renderView(); };
     vc.appendChild(d);
   });
+  // 全选/全不选按钮跟在所有语言最后
+  const la = document.createElement('button');
+  la.className='btn btn-sm'; la.textContent='全选'; la.onclick=()=>viewLangAll(true);
+  const ln = document.createElement('button');
+  ln.className='btn btn-sm'; ln.textContent='全不选'; ln.onclick=()=>viewLangAll(false);
+  vc.appendChild(la); vc.appendChild(ln);
 }
 
 // ===================== 世代 chips =====================
@@ -1681,7 +1695,7 @@ function doTranslate(){
     `共翻译 ${hitCount} 处术语` +
     (multiCount>0 ? `，${multiCount} 处一词多译（红色，点击切换）` : '') +
     (enhanceOn ? `（琥珀色=增强翻译，点击看原词出处）` : '') +
-    (skipCount>0 ? `，${skipCount} 处特殊来源词已跳过（保留原文）` : '') +
+    (skipCount>0 ? `，${skipCount} 处忽略来源词未翻译（保留原文）` : '') +
     (missCount>0 ? `，${missCount} 处未匹配（保留原文）` : '');
 }
 
@@ -2070,7 +2084,7 @@ function renderViewPaginated(pageSize){
 // 虚拟滚动渲染（“全部”模式，只渲染可视行，10万条也流畅）
 function renderViewVirtual(){
   const total = _viewTotal;
-  document.getElementById('viewStats').textContent = `共 ${total} 条（虚拟滚动，滚动即加载）`;
+  document.getElementById('viewStats').textContent = `共 ${total} 条`;
   document.getElementById('pager').innerHTML = '';
 
   const wrap = document.getElementById('tblWrap');
@@ -2984,25 +2998,27 @@ function buildDexPokeSel(){
   list.forEach(p=>{
     // 该宝可梦的所有形态（含本体，按 form 升序）
     const forms = (formsByPoke.get(p.id)||[]).slice().sort((a,b)=>parseInt(a.form)-parseInt(b.form));
+    const altForms = forms.filter(f=>f.form !== '00');  // 非本体形态
     const nm = _dexLang==='simpl' ? p.name : p.nameTrad;
 
-    // 选项1：所有形态
-    const allF = document.createElement('div');
-    allF.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === 'all' ? ' on' : '');
-    allF.textContent = `${p.id} ${nm}（所有形态）`;
-    allF.onclick = ()=>{ selectDexPoke(p.id, 'all'); };
-    el.appendChild(allF);
+    // 仅当有非本体形态时，才显示「所有形态」选项（单形态宝可梦无需）
+    if(altForms.length > 0){
+      const allF = document.createElement('div');
+      allF.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === 'all' ? ' on' : '');
+      allF.textContent = `${p.id} ${nm}（所有形态）`;
+      allF.onclick = ()=>{ selectDexPoke(p.id, 'all'); };
+      el.appendChild(allF);
+    }
 
-    // 选项2：本体（form 00）
+    // 本体（form 00）
     const base = document.createElement('div');
     base.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === '00' ? ' on' : '');
     base.textContent = `${p.id} ${nm}`;
     base.onclick = ()=>{ selectDexPoke(p.id, '00'); };
     el.appendChild(base);
 
-    // 选项3..：每个非本体形态
-    forms.forEach(f=>{
-      if(f.form === '00') return;
+    // 每个非本体形态
+    altForms.forEach(f=>{
       const fn = _dexLang==='simpl' ? f.name : f.nameTrad;
       const d = document.createElement('div');
       d.className = 'chip small' + (_dexSelected && _dexSelected.id === p.id && _dexSelected.form === f.form ? ' on' : '');
@@ -3418,10 +3434,13 @@ function renderEntryListHtml(list, single){
         const vo = dexVerMap().get(vv);
         return _dexLang==='trad' ? vv : (vo ? vo.simp : vv);
       });
-      // 官译标签紧跟说明（放前面），版本标签保持位置不变（放行尾），简繁两行都带上
+      // 版本标签简繁完全一致 → 只显示一遍（挂在首行；繁体单列模式挂繁体行）
+      // 官译标签简繁可能不同（如仅简官/仅繁官），两行各自保留
       const verTags = verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('');
-      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verTags;
-      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verTags;
+      const verS = _dexLang==='trad' ? '' : verTags;
+      const verT = _dexLang==='trad' ? verTags : '';
+      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verS;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verT;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
           ${renderDescText(v.d.d, v.d.t, tagsS, tagsT)}
@@ -3436,9 +3455,12 @@ function renderEntryListHtml(list, single){
       const zyT = zyLabelFor(it.d, 'trad');
       const vo = _dexVersions[it.verIdx];
       const verName = _dexLang==='trad' ? (vo?vo.name:'') : (vo?vo.simp:'');
+      // 版本只显示一遍：简繁一致，挂在首行（繁体单列模式挂繁体行）
       const verTag = `<span class="ver-tag">${escHtml(verName)}</span>`;
-      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verTag;
-      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verTag;
+      const verS = _dexLang==='trad' ? '' : verTag;
+      const verT = _dexLang==='trad' ? verTag : '';
+      const tagsS = `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>` + verS;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>` + verT;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
           ${renderDescText(it.d.d, it.d.t, tagsS, tagsT)}
