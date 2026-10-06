@@ -1,0 +1,46 @@
+name: 自动生成图鉴数据
+
+on:
+  # 当 xlsx 文件被推送/更新时触发
+  push:
+    paths:
+      - '*.xlsx'
+  # 手动触发（仓库 Actions 页面点 Run workflow）
+  workflow_dispatch:
+
+# 需要写入权限（提交生成的 JSON）
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安装依赖
+        run: pip install openpyxl
+
+      - name: 生成 pokedex_entries.json
+        run: |
+          python gen_pokedex_entries.py
+        env:
+          OUT_JSON: "pokedex_entries.json"
+
+      - name: 提交生成的 JSON
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pokedex_entries.json
+          if git diff --cached --quiet; then
+            echo "pokedex_entries.json 无变化，跳过提交"
+          else
+            git commit -m "自动更新 pokedex_entries.json [skip ci]"
+            git push
+          fi
