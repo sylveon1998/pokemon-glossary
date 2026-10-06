@@ -145,9 +145,14 @@ input[type=file]{display:none;}
 .dex-poke-group-head{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:18px 0 8px; padding:8px 12px; background:var(--chip); border-radius:8px; border-left:4px solid var(--accent);}
 .dex-poke-group-head .big-name .trad{color:var(--muted); font-size:13px; font-weight:400; margin-left:6px;}
 .dex-entry{background:#fff; border:1px solid var(--border); border-radius:10px; padding:14px 16px; margin-bottom:10px; box-shadow:0 1px 4px rgba(30,40,80,.04);}
-.dex-entry-main{display:flex; flex-direction:column; gap:10px;}
+.dex-entry-main{display:flex; flex-direction:column; gap:6px;}
 .dex-entry-main .desc{font-size:15px; line-height:1.8; color:var(--text); width:100%;}
 .dex-entry-tags{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+/* 说明行：文本 + 行尾标签，标签放不下时自动换到本行下一行（不干扰另一语言行） */
+.desc-row{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 8px;}
+.desc-row .desc-text{flex:1 1 auto; min-width:120px; line-height:1.8;}
+.desc-row .desc-text.trad{color:var(--muted);}
+.desc-row .tags-inline{display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-left:auto;}
 .dex-entry-head{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
 .dex-entry .ver-tag{font-size:12px; font-weight:600; color:var(--accent2); background:var(--chip); border-radius:5px; padding:2px 8px;}
 .dex-entry .zy-tag{font-size:11px; border-radius:5px; padding:1px 7px; font-weight:600;}
@@ -906,6 +911,15 @@ function buildGenChips(){
       sub.onclick=()=>{ sub.classList.toggle('on'); renderView(); };
       wrap.appendChild(sub);
     });
+    // 裸特殊来源（如纯「GENA」无分支）也要有一个明确的 chip，否则这一栏看起来空空的
+    if(g.special && g.codes.length === 0){
+      const sub = document.createElement('div');
+      sub.className='chip small'; sub.dataset.group='gen';
+      sub.dataset.special = g.special;
+      sub.textContent = `${g.name} (${g.special})`;
+      sub.onclick=()=>{ sub.classList.toggle('on'); renderView(); };
+      wrap.appendChild(sub);
+    }
     row.appendChild(wrap);
     gc.appendChild(row);
   });
@@ -2390,16 +2404,20 @@ function isDexFile(name){
   return /pokedex/i.test(name) && /\.(xlsx|xls|csv|json)$/i.test(name);
 }
 
-// 暂译类型细分：
-//   game  -> 游戏官译（是否暂译 = 官）
-//   card  -> 卡牌官译（含 简官 / 繁官 / 简官,繁官 任一）
-//   fan   -> 非官译（是否暂译 = 是）
-//   other -> 其他
+// 暂译类型细分（与 gen_pokedex_entries.py 的 zantyi_type 保持一致）：
+//   game          -> 游戏官译（是否暂译 = 官）
+//   card          -> 简繁都是卡牌官译（简官,繁官）
+//   cardSimplOnly -> 仅简体卡牌官译（简官），繁体视为非官译
+//   cardTradOnly  -> 仅繁体卡牌官译（繁官），简体视为非官译
+//   fan           -> 非官译（是否暂译 = 是）
+//   other         -> 其他
 function zantyiType(z){
   z = (z||'').trim();
   const hasJian = z.indexOf('简官') >= 0;
   const hasFan = z.indexOf('繁官') >= 0;
-  if(hasJian || hasFan) return 'card';
+  if(hasJian && hasFan) return 'card';
+  if(hasJian) return 'cardSimplOnly';
+  if(hasFan) return 'cardTradOnly';
   if(z === '官') return 'game';
   if(z === '是') return 'fan';
   return 'other';
@@ -2743,23 +2761,36 @@ function setDexViewMode(mode){
   renderDexEntries();
 }
 
-// 判断某条说明在当前语言下是否属于"卡牌官译"（仅繁官时，简体视为非官译；仅简官时，繁体视为非官译）
+// 判断某条说明在当前语言视角下应显示的暂译标签。
+// e.z: game | card | cardSimplOnly | cardTradOnly | fan | other
+//   cardSimplOnly(仅简官)：简体=卡牌官译，繁体=非官译
+//   cardTradOnly(仅繁官) ：简体=非官译，繁体=卡牌官译
+//   card(简繁都官译)     ：简繁都是卡牌官译
 function zyLabelFor(e, lang){
-  // e.z: game | card | fan | other
   const z = e.z;
   if(z === 'game') return {label:'游戏官译', cls:'zy-game'};
   if(z === 'card') return {label:'卡牌官译', cls:'zy-card'};
+  if(z === 'cardSimplOnly') return lang==='trad' ? {label:'非官译', cls:'zy-fan'} : {label:'卡牌官译', cls:'zy-card'};
+  if(z === 'cardTradOnly') return lang==='simpl' ? {label:'非官译', cls:'zy-fan'} : {label:'卡牌官译', cls:'zy-card'};
   if(z === 'fan') return {label:'非官译', cls:'zy-fan'};
   return {label:'其他', cls:'zy-other'};
 }
 
-// 根据当前语言渲染说明文本 HTML（简/繁/同时）
-function renderDescText(desc, descTrad){
-  if(_dexLang === 'simpl') return escHtml(desc);
-  if(_dexLang === 'trad') return escHtml(descTrad || desc);
-  // both：简繁上下并列
-  let h = '<div class="desc-line simpl">' + escHtml(desc) + '</div>';
-  if(descTrad && descTrad !== desc) h += '<div class="desc-line trad">' + escHtml(descTrad) + '</div>';
+// 根据当前语言渲染说明文本 + 行尾标签 HTML（简/繁/同时）。
+// tagsSimpl / tagsTrad：分别对应简体行、繁体行的行尾标签（含官译标签，按各语言视角各自判断）。
+// 单语言模式只用对应语言的标签；both 模式简繁两行各放各自的标签。
+function renderDescText(desc, descTrad, tagsSimpl, tagsTrad){
+  if(_dexLang === 'simpl'){
+    return `<div class="desc-row"><span class="desc-text">${escHtml(desc)}</span>${tagsSimpl?`<span class="tags-inline">${tagsSimpl}</span>`:''}</div>`;
+  }
+  if(_dexLang === 'trad'){
+    return `<div class="desc-row"><span class="desc-text">${escHtml(descTrad || desc)}</span>${tagsTrad?`<span class="tags-inline">${tagsTrad}</span>`:''}</div>`;
+  }
+  // both：简繁上下并列，各一行，各自带行尾标签
+  let h = `<div class="desc-row"><span class="desc-text">${escHtml(desc)}</span>${tagsSimpl?`<span class="tags-inline">${tagsSimpl}</span>`:''}</div>`;
+  if(descTrad && descTrad !== desc){
+    h += `<div class="desc-row"><span class="desc-text trad">${escHtml(descTrad)}</span>${tagsTrad?`<span class="tags-inline">${tagsTrad}</span>`:''}</div>`;
+  }
   return h;
 }
 
@@ -2832,14 +2863,16 @@ function renderDexEntries(){
     return;
   }
 
-  // 应用暂译类型筛选（卡牌官译不因简繁视角改变类别）
+  // 应用暂译类型筛选：按当前语言视角归类（仅繁官在简体视角算非官译，反之亦然）
   const zyGame = document.getElementById('dexZyGame').checked;
   const zyCard = document.getElementById('dexZyCard').checked;
   const zyFan = document.getElementById('dexZyFan').checked;
   const zyPass = (z)=>{
     if(z === 'game') return zyGame;
-    if(z === 'card') return zyCard;
     if(z === 'fan') return zyFan;
+    if(z === 'card') return zyCard;
+    if(z === 'cardSimplOnly') return _dexLang==='trad' ? zyFan : zyCard;
+    if(z === 'cardTradOnly') return _dexLang==='simpl' ? zyFan : zyCard;
     return false;
   };
   const verPass = (verIdx)=>{
@@ -2948,19 +2981,20 @@ function renderEntryListHtml(list, single){
       if(verName && !descMap.get(k).vers.includes(verName)) descMap.get(k).vers.push(verName);
     }
     descMap.forEach(v=>{
-      const zy = zyLabelFor(v.d, _dexLang);
+      const zyS = zyLabelFor(v.d, 'simpl');
+      const zyT = zyLabelFor(v.d, 'trad');
       const vers = v.vers.slice().sort((a,b)=>verOrderOf(a)-verOrderOf(b));
       const verNames = vers.map(vv=>{
         const vo = dexVerMap().get(vv);
         return _dexLang==='trad' ? vv : (vo ? vo.simp : vv);
       });
+      // 版本标签（整体信息，仅放一行）；官译标签按简/繁视角各放对应行
+      const verTags = verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('');
+      const tagsS = verTags + `<span class="zy-tag ${zyS.cls}">${zyS.label}</span>`;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>`;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
-          <div class="desc">${renderDescText(v.d.d, v.d.t)}</div>
-          <div class="dex-entry-tags">
-            <span class="zy-tag ${zy.cls}">${zy.label}</span>
-            <span class="ver-list">${verNames.map(n=>`<span class="ver-tag">${escHtml(n)}</span>`).join('')}</span>
-          </div>
+          ${renderDescText(v.d.d, v.d.t, tagsS, tagsT)}
         </div>
       </div>`;
     });
@@ -2968,16 +3002,15 @@ function renderEntryListHtml(list, single){
     // 按游戏版本：逐条显示（每条一个版本）
     const sorted = list.slice().sort((a,b)=>verOrderOf(_dexVersions[a.verIdx]?.name)-verOrderOf(_dexVersions[b.verIdx]?.name));
     for(const it of sorted){
-      const zy = zyLabelFor(it.d, _dexLang);
+      const zyS = zyLabelFor(it.d, 'simpl');
+      const zyT = zyLabelFor(it.d, 'trad');
       const vo = _dexVersions[it.verIdx];
       const verName = _dexLang==='trad' ? (vo?vo.name:'') : (vo?vo.simp:'');
+      const tagsS = `<span class="ver-tag">${escHtml(verName)}</span><span class="zy-tag ${zyS.cls}">${zyS.label}</span>`;
+      const tagsT = `<span class="zy-tag ${zyT.cls}">${zyT.label}</span>`;
       html += `<div class="dex-entry">
         <div class="dex-entry-main">
-          <div class="desc">${renderDescText(it.d.d, it.d.t)}</div>
-          <div class="dex-entry-tags">
-            <span class="ver-tag">${escHtml(verName)}</span>
-            <span class="zy-tag ${zy.cls}">${zy.label}</span>
-          </div>
+          ${renderDescText(it.d.d, it.d.t, tagsS, tagsT)}
         </div>
       </div>`;
     }
