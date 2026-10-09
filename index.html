@@ -1669,17 +1669,16 @@ function doTranslate(){
       }
     }
     if(!matched){
-      // 增强翻译 + 日文：整词拆分翻译（把无法整体命中的日文词拆成「可翻译前缀 + 剩余原文」）
-      if(enhanceIndex && tok.type === 'word' && /[\u3040-\u30ff]/.test(tok.raw)){
-        const split = trySplitJapaneseWord(tok.raw, index, enhanceIndex, opts, skipSpecials);
-        if(split){
-          const finalCands = split.cands.map(c=>({ ...c, dst: c.dst }));
-          if(finalCands.length > 1){
-            multiCount++;
-            result.push({type:'multi', src:tok.raw, srcStart:tok.start, srcEnd:tok.end, cands:finalCands});
-          } else {
-            hitCount++;
-            result.push({type:'plain', src:tok.raw, srcStart:tok.start, srcEnd:tok.end, dst:finalCands[0].dst, cands:finalCands});
+      // 词内分段扫描：含中点符号（・･·）或假名的词，无需增强模式也能在词内
+      // 逐段命中术语表（普通索引优先，增强索引兜底）。例：
+      //   ピカチュウ・ニコロン・ヒトカゲ → 皮卡丘・ニコロン・小火龙
+      if(/[\u3040-\u30ff・･·]/.test(tok.raw)){
+        const pieces = trySegmentScan(tok.raw, index, enhanceIndex, opts, skipSpecials, tok.start);
+        if(pieces){
+          for(const p of pieces){
+            if(p.raw !== undefined){ result.push(p.raw); missCount++; }
+            else if(p.type === 'multi'){ multiCount++; result.push(p); }
+            else { hitCount++; result.push(p); }
           }
           i++;
           continue;
@@ -1721,40 +1720,71 @@ function matchEnhance(phraseRaw, enhIndex, opts){
   return null;
 }
 
-// 日文整词拆分翻译：一个无法整体命中的日文词，尝试拆成「可翻译前缀 + 剩余原文」。
-// 前缀优先走增强索引（剥离前后缀后的核心词映射），普通索引兜底；取最长可翻译前缀。
-// 例：タンバグリーンズ → 前缀「タンバ」命中增强索引（→湛蓝），剩余「グリーンズ」保留原文。
-function trySplitJapaneseWord(word, index, enhanceIndex, opts, skipSpecials){
+// 词内分段扫描翻译：一个无法整体命中的词（含中点符号・･· 或含假名），在词内做
+// 贪心字典扫描：从每个位置起尝试「最长可命中的子串」（普通索引优先，增强索引兜底），
+// 命中的子串输出译文，未命中的字符保留原文，分隔符原样保留。无需增强模式即可工作。
+// 例：ピカチュウ・ニコロン・ヒトカゲ → 皮卡丘・ニコロン・小火龙（ヒトカゲ 普通索引直接命中）
+// 同时因为扫描是「子串匹配」，术语表里本身含 ・ 的词（如 サービス・カウンター）也能在
+// 更长的未命中词内被整体命中，不会被误切断。
+// baseOffset 是该词在全文中的起始偏移（用于点击弹出处时的原文高亮定位）。
+const SEG_SEP = /[・･·]/;
+function trySegmentScan(word, index, enhanceIndex, opts, skipSpecials, baseOffset){
   if(!word || word.length < 2) return null;
   const str = String(word);
-  // 从最长前缀开始（留至少 1 个字符做剩余部分）
-  for(let i = str.length - 1; i >= 1; i--){
-    const prefix = str.slice(0, i);
-    const rest = str.slice(i);
-    let cands = null;
-    const eh = matchEnhance(prefix, enhanceIndex, opts);
-    if(eh && eh.cands.length) cands = eh.cands;
-    else {
-      const ph = matchPhrase(prefix, index, opts);
+  const pieces = [];
+  let buf = '';        // 连续未命中的字符缓冲
+  let bufStart = 0;    // 缓冲起点（词内相对偏移）
+  let pos = 0;
+  let anyHit = false;
+  const flushBuf = ()=>{ if(buf){ pieces.push({raw:buf, relStart:bufStart, relEnd:pos}); buf=''; } };
+  while(pos < str.length){
+    let hit = null;
+    const maxLen = Math.min(32, str.length - pos);
+    for(let len = maxLen; len >= 1; len--){
+      const sub = str.slice(pos, pos + len);
+      // 单个分隔符（・･·）不参与命中，直接保留原文
+      if(len === 1 && SEG_SEP.test(sub)) break;
+      let cands = null;
+      const ph = matchPhrase(sub, index, opts);
       if(ph && ph.cands.length) cands = ph.cands;
+      else if(enhanceIndex){
+        const eh = matchEnhance(sub, enhanceIndex, opts);
+        if(eh && eh.cands.length) cands = eh.cands;
+      }
+      if(cands && skipSpecials.size > 0){
+        const use = cands.filter(c => !c.special || !skipSpecials.has(c.special));
+        cands = use.length ? use : null;
+      }
+      if(cands && cands.length){ hit = { cands, len }; break; }
     }
-    if(!cands || !cands.length) continue;
-    // 过滤被跳过的特殊来源
-    let use = cands;
-    if(skipSpecials.size > 0){
-      use = cands.filter(c => !c.special || !skipSpecials.has(c.special));
-      if(use.length === 0) continue;
+    if(hit){
+      flushBuf();
+      const relStart = pos, relEnd = pos + hit.len;
+      const sub = str.slice(relStart, relEnd);
+      if(hit.cands.length > 1){
+        pieces.push({type:'multi', src:sub, relStart, relEnd, cands:hit.cands});
+      } else {
+        pieces.push({type:'plain', src:sub, relStart, relEnd, dst:hit.cands[0].dst, cands:hit.cands});
+      }
+      pos = relEnd;
+      anyHit = true;
+    } else {
+      if(!buf) bufStart = pos;
+      buf += str[pos];
+      pos++;
     }
-    // 前缀译文 + 剩余原文
-    const out = use.map(c => {
-      const o = Object.assign({}, c, { dst: c.dst + rest });
-      if(c.enhance) o.fullSrc = c.fullSrc;   // 保留原词出处（整词原文）
-      if(c.split) { o.split = true; o.headDst = c.headDst; o.tail = c.tail + rest; }
-      return o;
-    });
-    return { cands: dedupCands(out) };
   }
-  return null;
+  flushBuf();
+  if(!anyHit) return null;
+  // 把词内相对偏移换算为全文绝对偏移
+  for(const p of pieces){
+    if(p.relStart !== undefined){
+      p.srcStart = baseOffset + p.relStart;
+      p.srcEnd = baseOffset + p.relEnd;
+      delete p.relStart; delete p.relEnd;
+    }
+  }
+  return pieces;
 }
 
 // 拆词多译：短语整体命中后，若首个词可单独命中不同译名，构造“拆词翻译”候选
