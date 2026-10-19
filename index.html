@@ -65,6 +65,8 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .dst-box .hl-red{background:#ffebee; color:var(--red); border-bottom:2px solid var(--red); cursor:pointer; padding:0 2px; border-radius:3px; white-space:pre-wrap;}
 .hl-plain{cursor:pointer; border-bottom:1px dashed #b0b7c8; padding:0 1px;}
 .hl-plain:hover{background:#f0f4ff;}
+.hl-cancelled{cursor:pointer; color:var(--muted); text-decoration:line-through; opacity:.55; padding:0 1px; border-bottom:1px dashed var(--red);}
+.hl-cancelled:hover{opacity:.85; background:#fff0f0; text-decoration:none;}
 .src-hl{background:#fff59d; color:#8d6e00; border-radius:3px; padding:0 1px; transition:background .3s;}
 .src-hl.flash{background:#ffd54f;}
 .btn-bar{display:flex; gap:8px; flex-wrap:wrap; margin-top:12px;}
@@ -73,10 +75,45 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .ta-group{display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding:4px 8px; background:#f7f8fc; border:1px solid var(--border); border-radius:9px;}
 .ta-label{font-size:12px; font-weight:600; color:var(--muted); padding:0 2px;}
 .ta-group .btn{padding:5px 10px; font-size:13px;}
+.ta-group select.width-mode{padding:5px 8px; font-size:13px; height:auto; line-height:1.4;}
 .ta-go{margin-left:auto; padding:9px 22px; font-size:15px;}
 .desc{color:var(--muted); font-size:12px; margin-top:8px;}
 .hl-red{background:#ffebee; color:var(--red); border-bottom:2px solid var(--red); cursor:pointer; padding:0 2px; border-radius:3px;}
 .hl-amber{background:#fff8e1; color:#b3541e; border-bottom:2px solid var(--amber); cursor:pointer; padding:0 2px; border-radius:3px;}
+/* 翻译结果词：右键可取消该处翻译（提示文案） */
+.dst-box .hl-plain,.dst-box .hl-red,.dst-box .hl-amber{position:relative;}
+/* 已翻译词汇列表 */
+.term-list{display:flex; flex-wrap:wrap; gap:6px; padding:4px 2px; max-height:220px; overflow-y:auto; align-content:flex-start; align-items:flex-start;}
+.term-toggle{display:flex; align-items:center; justify-content:space-between; gap:6px; margin:6px 0 4px; padding:5px 10px; background:var(--chip); border:1px solid var(--border); border-radius:8px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; user-select:none;}
+.term-toggle:hover{color:var(--text);}
+.term-toggle .fold-arrow{font-size:10px; transition:transform .18s;}
+.term-toggle.open .fold-arrow{transform:rotate(180deg);}
+.term-list-wrap{display:none; margin-bottom:4px;}
+.term-list-wrap.open{display:block;}
+.term-item{display:inline-flex; flex-direction:column; align-items:stretch; gap:4px; background:var(--chip); border:1px solid var(--border); border-radius:7px; padding:3px 4px 3px 8px; font-size:12px; max-width:100%; min-width:0;}
+.term-item.expanded{flex-basis:100%; background:#fff; border-color:var(--accent2); box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.term-item .t-row{display:flex; align-items:center; gap:5px; min-width:0;}
+.term-item .t-main{display:inline-flex; align-items:center; gap:5px; cursor:pointer; min-width:0; flex:1 1 auto;}
+.term-item .t-main:hover .t-src{color:var(--accent2);}
+.term-item .t-src{color:var(--muted); white-space:nowrap;}
+.term-item .t-arrow{color:var(--muted); font-size:11px;}
+.term-item .t-dst{color:var(--text); font-weight:600;}
+.term-item .t-count{color:var(--muted); font-size:11px;}
+.term-item .t-x{cursor:pointer; color:var(--muted); font-weight:700; font-size:14px; line-height:1; padding:0 4px; border-radius:50%; user-select:none; display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; flex:0 0 auto;}
+.term-item .t-x:hover{background:var(--red); color:#fff;}
+.term-item.cancelled{opacity:.4;}
+.term-item.cancelled .t-dst{text-decoration:line-through;}
+.t-occ-list{display:flex; flex-direction:column; gap:3px; padding:2px 0 2px 4px; border-top:1px dashed var(--border);}
+.t-occ{display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text); background:#fff; border:1px solid var(--border); border-radius:5px; padding:2px 6px; cursor:pointer;}
+.t-occ:hover{background:#f0f4ff; border-color:var(--accent2);}
+.t-occ-ctx{flex:1 1 auto; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted);}
+.t-occ-actions{flex:0 0 auto; display:inline-flex; gap:4px;}
+.t-occ-x,.t-occ-restore{cursor:pointer; font-weight:700; font-size:12px; line-height:1; padding:1px 3px; border-radius:4px; color:var(--muted); user-select:none;}
+.t-occ-x:hover{background:var(--red); color:#fff;}
+.t-occ-restore:hover{background:var(--green,#4caf50); color:#fff;}
+.t-occ.occ-cancelled{opacity:.5;}
+.t-occ.occ-cancelled .t-occ-ctx{text-decoration:line-through;}
+.term-empty{color:var(--muted); font-size:13px; padding:4px 2px;}
 .popup{position:fixed; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,.18); padding:12px; z-index:999; max-width:360px; min-width:240px;}
 .popup .title{font-size:12px; color:var(--muted); margin-bottom:8px;}
 .popup .opt{display:flex; align-items:center; gap:8px; padding:7px 10px; border-radius:7px; cursor:pointer; font-size:13px;}
@@ -142,7 +179,7 @@ input[type=file]{display:none;}
 .dex-search-wrap{position:relative;}
 .dex-search-input{width:100%; padding:10px 14px; border:1px solid var(--border); border-radius:9px; font-size:15px; font-family:inherit;}
 .dex-search-input:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,110,247,.12);}
-.dex-suggest{position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid var(--border); border-radius:9px; box-shadow:0 8px 30px rgba(0,0,0,.14); max-height:320px; overflow-y:auto; z-index:500; display:none;}
+.dex-suggest{position:absolute; left:0; right:0; top:calc(100% + 4px); background:#fff; border:1px solid var(--border); border-radius:9px; box-shadow:0 8px 30px rgba(0,0,0,.14); max-height:min(70vh,560px); overflow-y:auto; z-index:500; display:none;}
 .dex-suggest.show{display:block;}
 .dex-suggest-item{padding:8px 14px; cursor:pointer; font-size:13px; display:flex; align-items:center; gap:10px; border-bottom:1px solid #f0f2f8;}
 .dex-suggest-item:last-child{border-bottom:none;}
@@ -197,7 +234,8 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
 .dex-float.collapsed .dex-float-list{display:none;}
 .dex-float.collapsed .dex-float-bar{border-radius:11px;}
 .dex-float-list{flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden; padding:8px; display:flex; flex-wrap:wrap; gap:5px; align-content:flex-start;}
-.dex-float-item{box-sizing:border-box; flex:1 1 calc(50% - 3px); max-width:calc(50% - 2.5px); min-width:0; display:flex; flex-direction:row; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; line-height:1.4; white-space:nowrap; overflow:hidden; color:var(--text);}
+.dex-float-count{flex:1 1 100%; font-size:11px; color:var(--muted); padding:0 2px 4px; text-align:left;}
+.dex-float-item{box-sizing:border-box; flex:1 1 calc(50% - 3px); max-width:calc(50% - 2.5px); min-width:0; display:flex; flex-direction:row; align-items:center; gap:4px; padding:5px 7px; border-radius:7px; background:var(--chip); cursor:pointer; font-size:12px; line-height:1.4; white-space:nowrap; overflow:hidden; color:var(--text); content-visibility:auto; contain-intrinsic-size:0 28px;}
 .dex-float-item:hover{background:var(--accent); color:#fff;}
 .dex-float-item .fno{color:var(--accent2); font-weight:600; flex-shrink:0; white-space:nowrap;}
 .dex-float-item:hover .fno{color:#fff;}
@@ -228,15 +266,17 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
     </div>
   </div>
 
-  <!-- ============ 数据更新（前台简洁版） ============ -->
+  <!-- ============ 数据更新（前台简洁版，可展开/收起） ============ -->
   <div id="srcCard" class="card src-card">
-    <h2>数据更新</h2>
-    <div class="btn-bar" style="margin-top:0;">
-      <button class="btn btn-primary" onclick="manualUpdate()">🔄 立即更新</button>
-      <button class="btn" onclick="setMode('manual')">👆 手动更新</button>
-      <button class="btn" onclick="setMode('offline')">🔒 离线（本地加密）</button>
+    <h2 class="collapsible" onclick="toggleCard(this)">数据更新 <span class="fold-arrow">▼</span></h2>
+    <div class="card-body">
+      <div class="btn-bar" style="margin-top:0;">
+        <button class="btn btn-primary" onclick="manualUpdate()">🔄 立即更新</button>
+        <button class="btn" onclick="setMode('manual')">👆 手动更新</button>
+        <button class="btn" onclick="setMode('offline')">🔒 离线（本地加密）</button>
+      </div>
+      <div class="src-status" id="srcStatus"></div>
     </div>
-    <div class="src-status" id="srcStatus"></div>
   </div>
 
   <div class="tabs">
@@ -309,6 +349,13 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         </div>
       </div>
       <div class="desc" id="transInfo"></div>
+      <!-- 已翻译词汇：内嵌于输入/输出模块，默认收起，点 ✕ 取消该词在全文的所有翻译 -->
+      <div class="term-toggle" id="termToggle" onclick="toggleTermList()">
+        <span>查看已翻译的词汇</span><span class="fold-arrow" id="termArrow">▼</span>
+      </div>
+      <div class="term-list-wrap collapsed" id="termListWrap">
+        <div class="term-list" id="termList"><div class="term-empty">暂无已翻译的词汇（点击「开始翻译」后自动生成）</div></div>
+      </div>
       <div class="btn-bar trans-actions">
         <div class="ta-group">
           <span class="ta-label">源文本</span>
@@ -321,7 +368,10 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
           <span class="ta-label">译文</span>
           <button class="btn" onclick="copyText('dstText', this)">📋 复制</button>
           <button class="btn" onclick="clearText('dstText')">🗑 清空</button>
-          <button class="btn" onclick="convertWidth('dstText')">Ａａ 全半角</button>
+          <select class="btn width-mode" id="widthMode" onchange="convertWidth('dstText')" title="全半角转换范围">
+            <option value="global">Ａａ 全局全半角</option>
+            <option value="terms">Ａａ 仅术语全半角</option>
+          </select>
         </div>
         <div class="ta-group">
           <button class="btn" onclick="removeBlankLines()">🧹 清除空行</button>
@@ -329,6 +379,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
         <button class="btn btn-primary ta-go" onclick="doTranslate()">🚀 开始翻译</button>
       </div>
     </div>
+
   </div>
 
   <!-- ============ 术语查看模式 ============ -->
@@ -1557,6 +1608,19 @@ function detectLang(text){
   return null;
 }
 
+// ===================== 翻译结果状态（用于取消翻译 / 已翻译词汇列表） =====================
+// 保存最近一次翻译的完整上下文，供「取消翻译」后重渲染、以及「已翻译词汇」列表使用
+let _translateCtx = null;                 // { opts, enhanceOn, result }
+let _cancelAllKeys = new Set();           // 归一化源词 key -> 取消该词在全文的所有翻译
+let _cancelOccurrences = new Set();       // 结果项的 _uid -> 取消该处（单处）翻译
+
+// 重置取消状态（每次重新翻译时调用）
+function resetTranslateState(){
+  _translateCtx = null;
+  _cancelAllKeys = new Set();
+  _cancelOccurrences = new Set();
+}
+
 // 翻译
 function doTranslate(){
   if(!workbook){ alert('请先加载术语表文件'); return; }
@@ -1689,13 +1753,26 @@ function doTranslate(){
       i++;
     }
   }
+  // 为每个结果项分配唯一 uid（供「取消单处翻译」定位）
+  let _uidSeq = 0;
+  for(const it of result){
+    if(it && typeof it === 'object') it._uid = 'u' + (_uidSeq++);
+  }
+
+  // 保存翻译上下文 + 重置取消状态（每次重新翻译视为全新一轮）
+  _translateCtx = { opts, enhanceOn, result, text };
+  _cancelAllKeys = new Set();
+  _cancelOccurrences = new Set();
+
   renderDst(result, dstBox);
+  buildTermList();
   document.getElementById('transInfo').textContent =
     `共翻译 ${hitCount} 处术语` +
     (multiCount>0 ? `，${multiCount} 处一词多译（红色，点击切换）` : '') +
     (enhanceOn ? `（琥珀色=增强翻译，点击看原词出处）` : '') +
     (skipCount>0 ? `，${skipCount} 处忽略来源词未翻译（保留原文）` : '') +
-    (missCount>0 ? `，${missCount} 处未匹配（保留原文）` : '');
+    (missCount>0 ? `，${missCount} 处未匹配（保留原文）` : '') +
+    '　（右键译文词可取消该处翻译）';
 }
 
 // 匹配一个短语（单词或多词），返回 {cands, suffix}；suffix 是需补回译文尾部的原文片段
@@ -1810,44 +1887,326 @@ function buildSplitCands(words, index, opts, baseCands){
   return out;
 }
 
-// 渲染输出，红色高亮标记多译词；plain 词也可点击定位到源文本；增强来源词（琥珀色）点击看原词出处
+// 渲染输出，红色高亮标记多译词；plain 词也可点击定位到源文本；增强来源词（琥珀色）点击看原词出处。
+// 右键任一译文词可「取消该处翻译」（还原原文）；被取消全词/单处的项以原文形式渲染。
 function renderDst(result, dstBox){
   let html = '';
   let seq = 0;
   dstBox._multi = {};
   dstBox._plain = {};
+  const opts = (_translateCtx && _translateCtx.opts) || getOpts();
   for(const item of result){
-    if(typeof item === 'string'){ html += escHtml(item); }
-    else if(item.type === 'plain'){
-      // 若该词来自增强翻译（有原词出处），点击弹出出处窗口（与一词多译同款）
+    // 纯文本段
+    if(typeof item === 'string'){ html += escHtml(item); continue; }
+    // 判定该项是否已被取消（全词取消按基础键，覆盖 Pokémon / Pokémon. 等变体；或单处取消）
+    const nk = normKey(item.src, opts);
+    const isCancelled = _cancelAllKeys.has(nk) || _cancelAllKeys.has(baseKeyOf(item.src, opts)) || (item._uid != null && _cancelOccurrences.has(item._uid));
+    if(isCancelled){
+      // 单处取消：保留原文显示为可再次右键恢复的标记；全词取消：保留原文显示（可再次右键恢复）
+      const id = 'c' + (seq++);
+      html += `<span class="hl-cancelled" data-uid="${item._uid}" title="右键恢复翻译">${escHtml(item.src)}</span>`;
+      dstBox._cancelled = dstBox._cancelled || {};
+      dstBox._cancelled[id] = item;
+      continue;
+    }
+
+    // 把译文末尾的「句末标点」从高亮词中剥离，作为普通文本渲染（句号属于标点，不属于被翻译的词汇本身）
+    const dst = item.dst != null ? String(item.dst) : String(item.cands[0].dst);
+    const m = dst.match(/([.,;:!?。，、；：！？…'"”’]+)$/);
+    const dstCore = m ? dst.slice(0, m.index) : dst;
+    const dstPunct = m ? m[1] : '';
+
+    if(item.type === 'plain'){
       const hasEnhanceOrigin = item.cands && item.cands.some(c => c.enhance);
+      const id = hasEnhanceOrigin ? ('m' + (seq++)) : ('p' + (seq++));
       if(hasEnhanceOrigin){
-        const id = 'm' + (seq++);
-        html += `<span class="hl-amber" data-multi="${id}" title="点击查看原词出处">${escHtml(item.dst)}</span>`;
+        html += `<span class="hl-amber" data-multi="${id}" data-uid="${item._uid}" title="左键查看原词出处 · 右键取消该处翻译">${escHtml(dstCore)}</span>${escHtml(dstPunct)}`;
         dstBox._multi[id] = item;
       } else {
-        const id = 'p' + (seq++);
-        html += `<span class="hl-plain" data-plain="${id}" title="点击定位到源文本">${escHtml(item.dst)}</span>`;
+        html += `<span class="hl-plain" data-plain="${id}" data-uid="${item._uid}" title="左键定位到源文本 · 右键取消该处翻译">${escHtml(dstCore)}</span>${escHtml(dstPunct)}`;
         dstBox._plain[id] = item;
       }
     }
     else if(item.type === 'multi'){
       const id = 'm' + (seq++);
-      html += `<span class="hl-red" data-multi="${id}">${escHtml(item.cands[0].dst)}</span>`;
+      html += `<span class="hl-red" data-multi="${id}" data-uid="${item._uid}" title="左键切换多译 · 右键取消该处翻译">${escHtml(dstCore)}</span>${escHtml(dstPunct)}`;
       dstBox._multi[id] = item;
     }
   }
   dstBox.innerHTML = html;
   dstBox._multis = dstBox._multi;
-  // 多译词 / 增强来源词：点击弹出窗口（一词多译与增强原词提示并存）
+  // 多译词 / 增强来源词：左键弹出窗口；右键取消该处翻译
   dstBox.querySelectorAll('.hl-red, .hl-amber').forEach(el=>{
     el.onclick = (e)=>{ e.stopPropagation(); showMultiPopup(e, el, dstBox); };
+    el.oncontextmenu = (e)=>{ e.preventDefault(); e.stopPropagation(); cancelOccurrence(el.dataset.uid, el.dataset.multi, dstBox); };
   });
-  // 普通翻译词：点击定位到源文本并高亮
+  // 普通翻译词：左键定位到源文本；右键取消该处翻译
   dstBox.querySelectorAll('.hl-plain').forEach(el=>{
     el.onclick = (e)=>{ e.stopPropagation(); locateSource(el.dataset.plain, dstBox); };
+    el.oncontextmenu = (e)=>{ e.preventDefault(); e.stopPropagation(); cancelOccurrence(el.dataset.uid, el.dataset.plain, dstBox); };
+  });
+  // 被取消的词（显示为原文）：右键恢复翻译；左键也可恢复（方便点错撤销）
+  dstBox.querySelectorAll('.hl-cancelled').forEach(el=>{
+    el.oncontextmenu = (e)=>{ e.preventDefault(); e.stopPropagation(); cancelOccurrence(el.dataset.uid, null, dstBox); };
+    el.onclick = (e)=>{ e.stopPropagation(); cancelOccurrence(el.dataset.uid, null, dstBox); };
   });
   dstBox._result = result;
+}
+
+// 取消/恢复「单处」翻译：右键在被取消的词上再次点击即可撤销。
+// 已被取消的词以「原文 + 删除线淡色」形式保留在译文中，可继续右键恢复。
+function cancelOccurrence(uid, markerId, dstBox){
+  if(uid == null || uid === 'undefined') return;
+  const item = findResultItemByUid(uid);
+  if(!item) return;
+  const opts = _translateCtx ? _translateCtx.opts : getOpts();
+  const bk = baseKeyOf(item.src, opts);
+  // 若当前该词被「全词取消」，恢复时应一并清除全词标记（否则该处仍会被全词规则覆盖）
+  if(_cancelAllKeys.has(bk)) _cancelAllKeys.delete(bk);
+  // 单处 toggle
+  if(_cancelOccurrences.has(uid)) _cancelOccurrences.delete(uid);
+  else _cancelOccurrences.add(uid);
+  if(_translateCtx){
+    renderDst(_translateCtx.result, dstBox || document.getElementById('dstText'));
+    buildTermList();
+  }
+}
+
+// 按 uid 在 _translateCtx.result 中查找结果项
+function findResultItemByUid(uid){
+  if(!_translateCtx) return null;
+  for(const it of _translateCtx.result){
+    if(it && typeof it === 'object' && it._uid === uid) return it;
+  }
+  return null;
+}
+
+// ===================== 已翻译词汇列表 =====================
+// 从本次翻译结果中汇总「源词 → 译文」的唯一词对（按归一化源词去重）。
+// 每项带 ✕ 按钮，点击取消该词在全文的所有翻译。
+// 词条的「基础键」：剥离所有格与句末标点后归一化。
+// 用于把「Pokémon」「Pokémon.」「Pokémon's」等同词变体归并到同一条词汇（标点是分词带上的，不是不同的词）
+function baseKeyOf(src, opts){
+  const b = stripTrailingPunct(stripPossessive(String(src)));
+  return normKey(b, opts) || normKey(src, opts);
+}
+
+function collectTranslatedTerms(){
+  if(!_translateCtx) return [];
+  const opts = _translateCtx.opts;
+  const srcText = (_translateCtx.text != null) ? _translateCtx.text : '';
+  const map = new Map(); // bk -> { src, dst, bk, cancelled, count, occ:[{uid, start, end, cancelled, ctx}] }
+  for(const it of _translateCtx.result){
+    if(!it || typeof it === 'object'){
+      if(!it) continue;
+      if(it.dst == null && !(it.cands && it.cands.length)) continue;
+    } else continue;
+    const src = it.src;
+    // 展示用词：剥离所有格与句末标点（句号/逗号等是标点，不属于词汇本身）
+    const srcShow = stripTrailingPunct(stripPossessive(String(src)));
+    const dstRaw = it.dst != null ? it.dst : it.cands[0].dst;
+    const dstShow = stripTrailingPunct(String(dstRaw));
+    if(!srcShow) continue;
+    const bk = baseKeyOf(src, opts);
+    const uid = it._uid;
+    const isOccCancelled = uid != null && _cancelOccurrences.has(uid);
+    // 前后文（约10字符）：优先取源文本，否则用 src 自身
+    let ctx = '';
+    if(srcText && it.srcStart != null && it.srcEnd != null){
+      const s = Math.max(0, it.srcStart - 10);
+      const e = Math.min(srcText.length, it.srcEnd + 10);
+      ctx = srcText.slice(s, e).replace(/[\r\n]+/g, ' ');
+      if(s > 0) ctx = '…' + ctx;
+      if(e < srcText.length) ctx = ctx + '…';
+    } else {
+      ctx = String(src);
+    }
+    if(!map.has(bk)){
+      map.set(bk, { src: srcShow, dst: dstShow, bk, count: 0, occ: [] });
+    } else {
+      const cur = map.get(bk);
+      // 优先展示不带句末标点/所有格的基础形态，其次取更短者
+      const score = s => (/[.,;:!?。，、；：！？…'"”’]$/.test(s) ? 100 : 0) + s.length;
+      if(score(srcShow) < score(cur.src)){ cur.src = srcShow; cur.dst = dstShow; }
+    }
+    const cur = map.get(bk);
+    cur.count++;
+    // occ 的「取消」状态：单处取消 或 全词取消 均视为取消
+    cur.occ.push({ uid, start: it.srcStart, end: it.srcEnd, cancelled: isOccCancelled, ctx });
+    cur.cancelled = _cancelAllKeys.has(bk);
+  }
+  // 后处理：全词取消时，其下所有 occ 都标记为取消（便于展示与恢复）
+  for(const t of map.values()){
+    if(t.cancelled){
+      for(const o of t.occ) o.cancelled = true;
+    }
+  }
+  return Array.from(map.values());
+}
+
+// 渲染「查看已翻译的词汇」列表
+// 点击词条主体：单处直接跳转定位；多处展开前后文列表，可点某处跳转或单独取消该处。
+function buildTermList(){
+  const box = document.getElementById('termList');
+  if(!box) return;
+  const terms = collectTranslatedTerms();
+  if(terms.length === 0){
+    box.innerHTML = '<div class="term-empty">暂无已翻译的词汇（点击「开始翻译」后自动生成）</div>';
+    return;
+  }
+  // 按出现次数排序（多的在前），便于优先看到重复词
+  terms.sort((a,b)=> b.count - a.count);
+  box.innerHTML = terms.map(t => {
+    const occs = t.occ || [];
+    const activeOccs = occs.filter(o=>!o.cancelled);
+    const cancelledOccs = occs.filter(o=>o.cancelled);
+    const allCancelled = t.cancelled || (occs.length > 0 && activeOccs.length === 0);
+    return `<div class="term-item${allCancelled ? ' cancelled' : ''}" data-bk="${escHtml(t.bk)}">
+      <div class="t-row">
+        <span class="t-main" data-bk="${escHtml(t.bk)}">
+          <span class="t-src">${escHtml(t.src)}</span>
+          <span class="t-arrow">→</span>
+          <span class="t-dst">${escHtml(t.dst)}</span>
+          <span class="t-count">（${activeOccs.length}/${t.count}处）</span>
+        </span>
+        <span class="t-x" title="取消/恢复该词在全文的所有翻译" data-bk="${escHtml(t.bk)}">✕</span>
+      </div>
+      <div class="t-occ-list" data-bk="${escHtml(t.bk)}" style="display:none;">
+        ${occs.map((o,idx)=>`
+          <div class="t-occ${o.cancelled?' occ-cancelled':''}" data-uid="${o.uid==null?'':escHtml(o.uid)}" data-start="${o.start==null?'':o.start}" data-end="${o.end==null?'':o.end}" data-bk="${escHtml(t.bk)}" title="点击跳转到此处">
+            <span class="t-occ-ctx">${escHtml(o.ctx)}</span>
+            <span class="t-occ-actions">
+              ${o.cancelled
+                ? `<span class="t-occ-restore" data-uid="${escHtml(o.uid)}" title="恢复此处的翻译">↩</span>`
+                : `<span class="t-occ-x" data-uid="${escHtml(o.uid)}" title="取消这一处的翻译">✕</span>`}
+            </span>
+          </div>`
+        ).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  // 词条主体点击：单处跳转，多处展开/收起前后文
+  box.querySelectorAll('.t-main').forEach(main=>{
+    main.onclick = (e)=>{
+      e.stopPropagation();
+      const bk = main.dataset.bk;
+      const term = terms.find(t=>t.bk===bk);
+      if(!term) return;
+      const occs = (term.occ||[]).filter(o=>!o.cancelled);
+      if(occs.length === 0) return;
+      if(occs.length === 1){
+        jumpToOccurrence(occs[0], term);
+      } else {
+        // 展开/收起该词的前后文列表；展开时该词占满一行，避免撑开同行其它词
+        const item = main.closest('.term-item');
+        const list = item.querySelector('.t-occ-list');
+        const open = list.style.display !== 'none';
+        // 收起其它已展开的词（保持一次只展开一个）
+        box.querySelectorAll('.term-item.expanded').forEach(it=>{
+          if(it !== item){ it.classList.remove('expanded'); const l=it.querySelector('.t-occ-list'); if(l) l.style.display='none'; }
+        });
+        if(open){
+          list.style.display = 'none';
+          item.classList.remove('expanded');
+        } else {
+          list.style.display = 'block';
+          item.classList.add('expanded');
+        }
+      }
+    };
+  });
+  // 全词取消按钮
+  box.querySelectorAll('.t-x').forEach(x=>{
+    x.onclick = (e)=>{ e.stopPropagation(); cancelTermAll(x.dataset.bk); };
+  });
+  // 前后文条目：点击跳转；✕取消该处 / ↩恢复该处
+  box.querySelectorAll('.t-occ').forEach(occ=>{
+    occ.onclick = (e)=>{
+      if(e.target.closest('.t-occ-x') || e.target.closest('.t-occ-restore')) return;
+      const uid = occ.dataset.uid;
+      const start = occ.dataset.start === '' ? null : parseInt(occ.dataset.start,10);
+      const end = occ.dataset.end === '' ? null : parseInt(occ.dataset.end,10);
+      jumpToUid(uid, start, end);
+    };
+  });
+  box.querySelectorAll('.t-occ-x').forEach(x=>{
+    x.onclick = (e)=>{ e.stopPropagation(); if(x.dataset.uid) cancelOccurrence(x.dataset.uid, null, document.getElementById('dstText')); };
+  });
+  box.querySelectorAll('.t-occ-restore').forEach(x=>{
+    x.onclick = (e)=>{ e.stopPropagation(); if(x.dataset.uid) cancelOccurrence(x.dataset.uid, null, document.getElementById('dstText')); };
+  });
+}
+
+// 跳转到某一处：定位源文本选中 + 滚动；译文侧同步滚动并高亮对应词
+function jumpToUid(uid, start, end){
+  const srcBox = document.getElementById('srcText');
+  const dstBox = document.getElementById('dstText');
+  if(uid != null && uid !== '' && uid !== 'undefined'){
+    const item = findResultItemByUid(uid);
+    if(item && item.srcStart != null){ start = item.srcStart; end = item.srcEnd; }
+  }
+  if(start == null || end == null) return;
+  // 源文本定位
+  srcBox.focus();
+  try{ srcBox.setSelectionRange(start, end); }catch(e){}
+  const total = srcBox.value.length;
+  const ratio = total ? start / total : 0;
+  srcBox.scrollTop = Math.max(0, ratio * srcBox.scrollHeight - srcBox.clientHeight/2);
+  // 译文侧定位：找到对应 uid 的高亮词，滚动到视野中央并闪烁
+  if(dstBox && uid != null && uid !== '' && uid !== 'undefined'){
+    const el = dstBox.querySelector(`[data-uid="${uid}"]`);
+    if(el){
+      const boxRect = dstBox.getBoundingClientRect();
+      const elRect = el.getBoundingClientRect();
+      const target = elRect.top - boxRect.top + dstBox.scrollTop - dstBox.clientHeight/2 + elRect.height/2;
+      dstBox.scrollTop = Math.max(0, target);
+      // 闪烁高亮
+      const prevBg = el.style.backgroundColor;
+      el.style.backgroundColor = '#fff59d';
+      el.style.transition = 'background-color .15s';
+      setTimeout(()=>{ el.style.backgroundColor = prevBg; }, 1200);
+    }
+  }
+  const info = document.getElementById('transInfo');
+  const snippet = srcBox.value.slice(Math.max(0,start-10), Math.min(total,end+10)).replace(/[\r\n]+/g,' ');
+  info.textContent = `已定位到源文本「${snippet}」（第 ${srcBox.value.slice(0,start).split('\n').length} 行）`;
+}
+
+function jumpToOccurrence(occ, term){
+  jumpToUid(occ.uid, occ.start, occ.end);
+}
+
+// 展开/收起「查看已翻译的词汇」（内嵌于输入/输出模块）
+function toggleTermList(){
+  const wrap = document.getElementById('termListWrap');
+  const tg = document.getElementById('termToggle');
+  if(!wrap || !tg) return;
+  const open = wrap.classList.toggle('open');
+  tg.classList.toggle('open', open);
+}
+
+// 取消/恢复某词在全文的所有翻译：toggle 该基础键（含 Pokémon / Pokémon. 等所有变体），重渲染
+function cancelTermAll(bk){
+  if(!bk) return;
+  if(_cancelAllKeys.has(bk)){
+    // 恢复全词：同时清除该词所有出现的单处取消标记（回到全翻译状态）
+    _cancelAllKeys.delete(bk);
+    if(_translateCtx){
+      const opts = _translateCtx.opts;
+      for(const it of _translateCtx.result){
+        if(it && typeof it === 'object' && baseKeyOf(it.src, opts) === bk){
+          if(it._uid != null) _cancelOccurrences.delete(it._uid);
+        }
+      }
+    }
+  } else {
+    _cancelAllKeys.add(bk);
+  }
+  if(_translateCtx){
+    renderDst(_translateCtx.result, document.getElementById('dstText'));
+    buildTermList();
+  }
 }
 
 // 点击译文词 → 源文本跳转并高亮
@@ -2265,25 +2624,65 @@ function initColumnResize(){
 }
 
 // ===================== 复制/清空 =====================
+// 从译文结果框取纯文本：优先用内部 _result（保留每个词最终选定的译文），
+// 否则回退到 innerText（会把高亮词的内联文本拼出来）。
+function dstPlainText(el){
+  const res = el._result;
+  if(Array.isArray(res) && res.length){
+    return res.map(it => {
+      if(typeof it === 'string') return it;
+      // 一词多译/增强/普通：取当前展示的译文（多译默认第一个候选）
+      if(it.dst != null) return it.dst;
+      if(it.cands && it.cands.length) return it.cands[0].dst;
+      return '';
+    }).join('');
+  }
+  return (el.innerText || '').replace(/\u00a0/g, ' ');
+}
 function copyText(id, btn){
   const el = document.getElementById(id);
-  const text = id==='dstText' ? el.innerText : el.value;
-  navigator.clipboard.writeText(text).then(()=>{
-    const old = btn.textContent;
-    btn.textContent = '✅ 已复制';
-    setTimeout(()=>btn.textContent=old, 1200);
-  }).catch(()=>{
-    // fallback
-    const ta = document.createElement('textarea');
-    ta.value = text; document.body.appendChild(ta); ta.select();
-    document.execCommand('copy'); document.body.removeChild(ta);
-    const old = btn.textContent; btn.textContent='✅ 已复制'; setTimeout(()=>btn.textContent=old,1200);
-  });
+  if(!el){ return; }
+  const text = id === 'dstText' ? dstPlainText(el) : (el.value || '');
+  const done = (ok)=>{
+    const old = btn ? btn.textContent : '';
+    if(btn) btn.textContent = ok ? '✅ 已复制' : '❌ 复制失败';
+    setTimeout(()=>{ if(btn) btn.textContent = old; }, 1200);
+  };
+  // 优先用异步剪贴板 API（需 secure context）；navigator.clipboard 可能为 undefined，
+  // 此时直接走 execCommand 兜底，避免同步抛 TypeError。
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>done(true)).catch(()=>{
+      done(fallbackCopy(text));
+    });
+  } else {
+    done(fallbackCopy(text));
+  }
 }
-// 粘贴剪贴板文本到源文本框
+// 同步兜底：临时 textarea + execCommand('copy')
+function fallbackCopy(text){
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly','');
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return !!ok;
+  }catch(e){ return false; }
+}
+// 粘贴剪贴板文本到源文本框。
+// 剪贴板读取要求 secure context + 用户授权；file:// 或未授权时 readText 会失败。
+// 稳健做法：改用 text/plain 类型的 read()，并支持 execCommand('paste') 兜底。
 function pasteSrcText(btn){
   const el = document.getElementById('srcText');
-  navigator.clipboard.readText().then(text=>{
+  if(!el) return;
+  const after = (text)=>{
     if(text == null) text = '';
     el.value = text;
     if(btn){
@@ -2292,13 +2691,43 @@ function pasteSrcText(btn){
       setTimeout(()=>btn.textContent=old, 1200);
     }
     applyAutoDetect();
-  }).catch(()=>{
-    alert('无法读取剪贴板，请手动在源文本框内粘贴（Ctrl+V）。');
-  });
+  };
+  const fail = ()=>{
+    // 兜底1：聚焦源文本框后尝试 execCommand('paste')（需浏览器允许，通常需要用户手势）
+    try{
+      el.focus();
+      const ok = document.execCommand('paste');
+      if(ok){ applyAutoDetect(); return; }
+    }catch(e){}
+    alert('无法读取剪贴板。请直接用 Ctrl+V 粘贴到源文本框（浏览器出于安全限制，读取剪贴板通常需要你手动确认）。');
+  };
+  if(navigator.clipboard && typeof navigator.clipboard.readText === 'function'){
+    navigator.clipboard.readText().then(after).catch(fail);
+  } else if(navigator.clipboard && typeof navigator.clipboard.read === 'function'){
+    // 某些环境 readText 缺失但 read() 存在
+    navigator.clipboard.read()
+      .then(items=>{
+        for(const it of items){
+          if(it.types && it.types.includes('text/plain')){
+            return it.getType('text/plain');
+          }
+        }
+        return null;
+      })
+      .then(blob => blob ? blob.text() : '')
+      .then(after)
+      .catch(fail);
+  } else {
+    fail();
+  }
 }
 function clearText(id){
   const el = document.getElementById(id);
-  if(id==='dstText'){ el.innerHTML=''; el._multis={}; el._plain={}; }
+  if(id==='dstText'){
+    el.innerHTML=''; el._multis={}; el._plain={}; el._result=null;
+    resetTranslateState();
+    buildTermList();
+  }
   else { el.value=''; if(id==='srcText') applyAutoDetect(); }
 }
 // 清除文字之间的空行：把连续多个换行（含空白行）合并为单个换行
@@ -2308,21 +2737,64 @@ function removeBlankLines(){
   applyAutoDetect();
 }
 
-// 全半角转换：对源文本(textarea)或译文(dst-box)进行全角↔半角切换
+// 全半角转换：对源文本(textarea)或译文(dst-box)进行全角↔半角切换。
+// 译文支持两种范围（通过 #widthMode 下拉切换）：
+//   global —— 对整段译文（含非术语部分）做全半角转换
+//   terms  —— 仅对被翻译的术语（高亮词）做全半角转换，其余文本不动
 function convertWidth(id){
   const el = document.getElementById(id);
   if(!el) return;
   const isDst = id === 'dstText';
-  const cur = isDst ? el.innerText : el.value;
+  if(!isDst){
+    // 源文本：始终全局转换
+    const cur = el.value;
+    if(!cur) return;
+    el.value = toggleWidth(cur);
+    applyAutoDetect();
+    return;
+  }
+  // 译文
+  const modeEl = document.getElementById('widthMode');
+  const mode = modeEl ? modeEl.value : 'global';
+  if(mode === 'terms'){
+    convertWidthTermsOnly(el);
+  } else {
+    convertWidthGlobalDst(el);
+  }
+}
+
+// 全局：整段译文转换（丢失高亮属预期行为）
+function convertWidthGlobalDst(el){
+  const cur = el.innerText;
   if(!cur) return;
   const converted = toggleWidth(cur);
-  if(isDst){
-    // 译文是渲染后的高亮 div，直接替换为纯文本（丢失高亮标记属预期行为）
-    el.innerText = converted;
-    el._multis = {}; el._plain = {};
-  } else {
-    el.value = converted;
-    applyAutoDetect();
+  el.innerText = converted;
+  el._multis = {}; el._plain = {}; el._result = null;
+  resetTranslateState();
+  buildTermList();
+}
+
+// 仅术语：只对被翻译的高亮词做全半角转换，非术语文本保持原样。
+// 做法：遍历 _translateCtx.result，仅对 plain/multi 项改写其 dst 候选，再整体重渲染。
+function convertWidthTermsOnly(el){
+  if(!_translateCtx || !_translateCtx.result) return;
+  let changed = false;
+  for(const it of _translateCtx.result){
+    if(!it || typeof it !== 'object') continue;
+    if(it.cands && it.cands.length){
+      for(const c of it.cands){
+        const nd = toggleWidth(String(c.dst));
+        if(nd !== c.dst){ c.dst = nd; changed = true; }
+      }
+    }
+    if(it.dst != null){
+      const nd = toggleWidth(String(it.dst));
+      if(nd !== it.dst){ it.dst = nd; changed = true; }
+    }
+  }
+  if(changed){
+    renderDst(_translateCtx.result, el);
+    buildTermList();
   }
 }
 
@@ -2479,7 +2951,7 @@ const OFFLINE_STORE = 'data';
 const OFFLINE_KEY = 'encrypted_xlsx';
 const AUTO_UPDATE_KEY = 'poke_glossary_last_auto_v1';
 const AUTO_INTERVAL = 24 * 60 * 60 * 1000; // 一天
-const DEFAULT_SRC_URL = 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/refs/heads/main/Glossary%20Master%20260628(1).xlsx';
+const DEFAULT_SRC_URL = 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/refs/heads/main/Glossary%20Master%20261006.xlsx';
 const SRC_PASSWORD = '1981763857';
 
 let srcUrl = DEFAULT_SRC_URL;
@@ -2582,6 +3054,55 @@ async function fetchAndLoad(url){
   await applyWorkbook(buf, url);
 }
 
+// 通过 GitHub API 解析仓库里最新的「Glossary Master *.xlsx」文件名。
+// 术语表文件名带日期（如 Glossary Master 261006.xlsx），经常更名导致硬编码直链 404；
+// 这里动态列出仓库文件，按名称匹配取最新，返回可直读的 raw 直链。失败返回 null。
+const GITHUB_API_BASE = 'https://api.github.com/repos/sylveon1998/pokemon-glossary';
+async function resolveLatestGlossaryUrl(){
+  try{
+    const r = await fetch(GITHUB_API_BASE + '/contents/', { cache:'no-store' });
+    if(!r.ok) return null;
+    const list = await r.json();
+    if(!Array.isArray(list)) return null;
+    // 匹配 "Glossary Master *.xlsx"（忽略大小写），提取文件名中的数字串作为「版本号」，
+    // 数值最大的视为最新（应对日期/版本号更新，如 261006 → 261014）。无数字的按名称排序兜底。
+    let best = null, bestNum = -1;
+    for(const f of list){
+      if(f.type !== 'file') continue;
+      if(!/^Glossary\s+Master\b.*\.xlsx$/i.test(f.name)) continue;
+      const m = f.name.match(/\d+/g);
+      let num = -1;
+      if(m && m.length){
+        // 取文件名中最后一个连续数字（通常是日期/版本号），并拼接全部数字兜底比较
+        const last = m[m.length-1];
+        num = parseInt(last, 10) || -1;
+      }
+      if(num > bestNum){ bestNum = num; best = f.name; }
+      else if(num === bestNum && best != null && f.name > best){ best = f.name; }
+    }
+    if(!best) return null;
+    // raw 直链：直接拼 main 分支 + 文件名（空格转 %20）
+    return 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/main/' + encodeURIComponent(best);
+  }catch(e){ return null; }
+}
+
+// 解析最终要拉取的术语表 URL：优先用户自定义/缓存，否则动态解析仓库最新文件名，
+// 失败再回退到内置默认直链（已修正为当前实际文件名）。
+async function resolveSrcUrl(){
+  let u = srcUrl;
+  // 若当前 URL 是默认直链且请求 404，则尝试动态解析最新文件名（应对日期改名）
+  const r0 = await fetch(u, { method:'HEAD', cache:'no-store' }).catch(()=>null);
+  if(!r0 || !r0.ok){
+    const resolved = await resolveLatestGlossaryUrl();
+    if(resolved){
+      srcUrl = resolved;
+      try{ localStorage.setItem(SRC_STORAGE_KEY, resolved); }catch(e){}
+      u = resolved;
+    }
+  }
+  return u;
+}
+
 // 统一应用解析结果（含离线加密存档）
 async function applyWorkbook(buf, sourceName){
   await ensureXLSX();
@@ -2597,10 +3118,11 @@ async function manualUpdate(){
   if(!srcUrl){ alert('未配置在线数据表链接。'); return; }
   setSrcStatus('正在下载更新…');
   try{
-    const r = await fetch(srcUrl, { cache:'no-store' });
+    const url = await resolveSrcUrl();
+    const r = await fetch(url, { cache:'no-store' });
     if(!r.ok) throw new Error('下载失败：HTTP '+r.status);
     const buf = await r.arrayBuffer();
-    await applyWorkbook(buf, srcUrl);
+    await applyWorkbook(buf, url);
     // 下载成功后，加密存档到本地（离线兜底）
     try{
       const enc = await encryptBytes(buf);
@@ -2619,7 +3141,7 @@ async function manualUpdate(){
 function maybeAutoUpdate(){
   if(srcMode !== 'auto' || !srcUrl) return;
   setSrcStatus('正在自动拉取最新数据…');
-  fetchAndLoad(srcUrl).then(async ()=>{
+  resolveSrcUrl().then(url=>fetchAndLoad(url)).then(async ()=>{
     try{ localStorage.setItem(AUTO_UPDATE_KEY, String(Date.now())); }catch(e){}
     // 拉取成功后，加密缓存到本地（离线兜底）
     try{
@@ -2873,27 +3395,39 @@ let _dexFloatPokes = [];  // 已渲染的宝可梦 [{id, form, name}]
 function updateDexFloat(){
   const list = document.getElementById('dexFloatList');
   if(!list) return;
-  // 只显示「已渲染」的宝可梦（即 _dexRenderGroups 前 _dexRenderCount 个），按 id 去重（形态不考虑）
+  // 悬浮框展示「全部」符合条件的本体宝可梦（而非仅已滚动渲染的那部分），
+  // 按当前世代筛选 / 选中状态取完整列表，按 id 去重（形态不考虑）。
   const seen = new Map();
-  for(let i = 0; i < _dexRenderCount && i < _dexRenderGroups.length; i++){
-    const p = _dexRenderGroups[i].p;
+  let source;
+  if(_dexSelected){
+    // 选中单只/所有形态：只显示这一只
+    source = [POKEDEX_INDEX.pokemon.find(x=>x.id===_dexSelected.id && x.form==='00')].filter(Boolean);
+  } else {
+    source = collectDexPokes(); // 全部本体（受世代筛选约束）
+  }
+  for(const p of source){
     if(seen.has(p.id)) continue;
     const nm = _dexLang==='simpl' ? p.name : ( _dexLang==='trad' ? p.nameTrad : p.name );
-    // 优先用本体（form==='00'）的名字展示，避免形态名污染导航
     seen.set(p.id, { id:p.id, form:'00', name:nm });
   }
   const pokes = Array.from(seen.values());
   _dexFloatPokes = pokes;
   if(pokes.length === 0){ list.innerHTML = ''; return; }
-  list.innerHTML = pokes.map(p =>
-    `<div class="dex-float-item" data-id="${p.id}" title="#${p.id} ${escHtml(p.name)}">
-      <span class="fno">#${p.id}</span>
-      <span class="fname">${escHtml(p.name)}</span>
-    </div>`
-  ).join('');
-  list.querySelectorAll('.dex-float-item').forEach(el=>{
-    el.onclick = ()=> jumpToDexPoke(el.dataset.id);
-  });
+  // 一次性渲染全部（最多 1025 个）。为兼顾「完整显示」与「不卡顿」：
+  //   - 用 content-visibility:auto 让浏览器跳过视口外节点的布局/绘制开销
+  //   - 事件用事件委托（容器上挂一次 click），避免给上千个节点各绑监听
+  list.innerHTML =
+    `<div class="dex-float-count">共 ${pokes.length} 只</div>` +
+    pokes.map(p =>
+      `<div class="dex-float-item" data-id="${p.id}" title="#${p.id} ${escHtml(p.name)}">
+        <span class="fno">#${p.id}</span>
+        <span class="fname">${escHtml(p.name)}</span>
+      </div>`
+    ).join('');
+  list.onclick = (e)=>{
+    const item = e.target.closest ? e.target.closest('.dex-float-item') : null;
+    if(item) jumpToDexPoke(item.dataset.id);
+  };
 }
 
 // 跳转到对应宝可梦的图鉴说明（优先定位本体形态）
@@ -3145,7 +3679,9 @@ function dexSearchSuggest(query, sug){
   if(!q){ sug.classList.remove('show'); sug.innerHTML=''; return; }
   const isNum = /^\d+$/.test(q);
   const results = [];
-  const limit = 50;
+  // 提高上限：搜索建议完整展示所有匹配（1025 只内不会卡顿），
+  // 由外层 .dex-suggest 的滚动容器承载，避免遗漏匹配结果。
+  const limit = 2000;
   for(const p of POKEDEX_INDEX.pokemon){
     if(results.length >= limit) break;
     let hit = false;
@@ -3167,7 +3703,9 @@ function dexSearchSuggest(query, sug){
   if(results.length === 0){
     sug.innerHTML = '<div class="dex-suggest-empty">未找到匹配的宝可梦</div>';
   } else {
-    sug.innerHTML = results.map(p=>{
+    const total = results.length;
+    const shown = total > 300 ? results.slice(0, 300) : results;
+    let html = shown.map(p=>{
       const nm = _dexLang==='simpl' ? p.name : ( _dexLang==='trad' ? p.nameTrad : p.name );
       const trad = _dexLang==='simpl' ? p.nameTrad : p.name;
       return `<div class="dex-suggest-item" data-id="${p.id}" data-form="${p.form}">
@@ -3176,6 +3714,10 @@ function dexSearchSuggest(query, sug){
         <span class="tag">${genNameOf(p.gen)}</span>
       </div>`;
     }).join('');
+    if(total > shown.length){
+      html += `<div class="dex-suggest-empty">已显示前 ${shown.length} 个，共 ${total} 个匹配（可继续输入缩小范围）</div>`;
+    }
+    sug.innerHTML = html;
   }
   sug.classList.add('show');
   sug.querySelectorAll('.dex-suggest-item').forEach(item=>{
