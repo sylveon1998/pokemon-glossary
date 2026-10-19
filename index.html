@@ -3042,8 +3042,13 @@ const OFFLINE_LS_KEY = 'poke_glossary_offline_b64';
 
 function openOfflineDB(){
   return new Promise((resolve, reject)=>{
+    // file:// 协议下浏览器禁用 IndexedDB，此时直接拒绝并降级 localStorage，
+    // 绝不再调用 indexedDB.open()（否则会触发 "IDBFactory denied" 控制台报错）
+    if(isFileProtocol() || !('indexedDB' in window)){
+      reject(new Error('当前环境不可用 IndexedDB（将改用 localStorage）'));
+      return;
+    }
     try{
-      if(!window.indexedDB){ reject(new Error('IndexedDB 不可用')); return; }
       const req = indexedDB.open(OFFLINE_DB_NAME, 1);
       req.onupgradeneeded = ()=>{ req.result.createObjectStore(OFFLINE_STORE); };
       req.onsuccess = ()=>resolve(req.result);
