@@ -43,6 +43,8 @@ VERSION_GEN = {
     "Let's Go！皮卡丘": 7, "Let's Go！伊布": 7,
     '劍': 8, '盾': 8, '晶燦鑽石': 8, '明亮珍珠': 8, '傳說 阿爾宙斯': 8,
     '朱': 9, '紫': 9, '傳說 Z-A': 9,
+    # 旁支系列（非正代，用世代号 10 标记，前端归入「旁支系列」分组）
+    'Pokopia': 10, 'Masters': 10, 'Go': 10,
 }
 
 # 版本显示顺序（游戏发布时间序）
@@ -57,6 +59,7 @@ VERSION_ORDER = [
     "Let's Go！皮卡丘", "Let's Go！伊布",
     '劍', '盾', '晶燦鑽石', '明亮珍珠', '傳說 阿爾宙斯',
     '朱', '紫', '傳說 Z-A',
+    'Pokopia', 'Masters', 'Go',
 ]
 VERSION_ORDER_MAP = {v: i for i, v in enumerate(VERSION_ORDER)}
 
@@ -77,6 +80,7 @@ VER_SIMP = {
     '劍': '剑', '盾': '盾',
     '晶燦鑽石': '晶灿钻石', '明亮珍珠': '明亮珍珠', '傳說 阿爾宙斯': '传说 阿尔宙斯',
     '朱': '朱', '紫': '紫', '傳說 Z-A': '传说 Z-A',
+    'Pokopia': 'Pokopia', 'Masters': 'Masters', 'Go': 'Go',
 }
 
 # 暂译类型细分（与 index.html 里 JS 的 zantyiType 保持一致）
