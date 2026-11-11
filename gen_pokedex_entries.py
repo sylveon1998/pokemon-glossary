@@ -22,10 +22,14 @@ def find_dex_xlsx():
     cands = [c for c in cands if not os.path.basename(c).startswith('~$')]
     if not cands:
         return None
-    # 优先含"已更新"
-    for c in cands:
-        if '已更新' in c:
-            return c
+    # 按文件名中的版本号排序，选最新版本（如 pokedex 1.1.xlsx 优先于 pokedex 1.0_已更新.xlsx）
+    def ver_key(path):
+        name = os.path.basename(path)
+        m = re.search(r'(\d+)\.(\d+)', name)
+        if m:
+            return (int(m.group(1)), int(m.group(2)))
+        return (0, 0)
+    cands.sort(key=ver_key, reverse=True)
     return cands[0]
 
 DEX_PATH = find_dex_xlsx()
@@ -84,20 +88,35 @@ VER_SIMP = {
 }
 
 # 暂译类型细分（与 index.html 里 JS 的 zantyiType 保持一致）
-def zantyi_type(z):
-    z = (z or '').strip()
-    has_jian = '简官' in z
-    has_fan = '繁官' in z
-    if has_jian and has_fan:
-        return 'card'          # 简繁都官译
-    if has_jian:
-        return 'cardSimplOnly'  # 仅简官
-    if has_fan:
-        return 'cardTradOnly'   # 仅繁官
-    if z == '官':
+# 新版 xlsx 将「是否暂译」拆为「简中情况」+「繁中情况」两列，各自标注：
+#   官译 / 暂译 / 卡牌官译 / 博物展官译
+# 依据简繁两列的标注组合判断：
+#   官译+官译           -> game（游戏官译）
+#   暂译+暂译           -> fan（非官译）
+#   卡牌官译/博物展官译（简繁都是其他官译） -> card
+#   卡牌官译/博物展官译（仅简）+ 暂译         -> cardSimplOnly（仅简官）
+#   暂译 + 卡牌官译/博物展官译（仅繁）         -> cardTradOnly（仅繁官）
+OTHER_OFFICIAL = ('卡牌官译', '博物展官译')
+
+def zantyi_type(jian, fan):
+    jian = (jian or '').strip()
+    fan = (fan or '').strip()
+    j_game = jian == '官译'
+    f_game = fan == '官译'
+    j_fan = jian == '暂译'
+    f_fan = fan == '暂译'
+    j_card = jian in OTHER_OFFICIAL
+    f_card = fan in OTHER_OFFICIAL
+    if j_game and f_game:
         return 'game'
-    if z == '是':
+    if j_fan and f_fan:
         return 'fan'
+    if j_card and f_card:
+        return 'card'
+    if j_card and f_fan:
+        return 'cardSimplOnly'
+    if j_fan and f_card:
+        return 'cardTradOnly'
     return 'other'
 
 
@@ -109,8 +128,9 @@ def main():
     wb = openpyxl.load_workbook(DEX_PATH, read_only=True, data_only=True)
     ws = wb['pokedex_explained']
     rows = ws.iter_rows(values_only=True)
-    next(rows, None)  # 跳过表头
-    # 列: 0编号_形态_说明 1中文名_形态名 2简体说明 3繁体说明 4应用版本 5是否暂译
+    header = next(rows, None)  # 跳过表头
+    # 列: 0编号_形态_说明 1中文名_形态名 2简体说明 3繁体说明 4应用版本 5简中情况 6繁中情况
+    # 兼容旧版：若表头第6列是「是否暂译」（单列合并），则按旧逻辑处理
 
     # 先收集所有版本，确定版本列表
     ver_names = set()
@@ -130,10 +150,11 @@ def main():
         desc_s = str(row[2]).strip() if len(row) > 2 and row[2] else ''
         desc_t = str(row[3]).strip() if len(row) > 3 and row[3] else ''
         ver = str(row[4]).strip() if len(row) > 4 and row[4] else ''
-        zy = str(row[5]).strip() if len(row) > 5 and row[5] else ''
+        jian = str(row[5]).strip() if len(row) > 5 and row[5] else ''
+        fan = str(row[6]).strip() if len(row) > 6 and row[6] else ''
 
         key = f'{pid}_{formNo}'
-        z = zantyi_type(zy)
+        z = zantyi_type(jian, fan)
         dk = (desc_s, desc_t, z)
         if dk not in desc_key_to_idx:
             desc_key_to_idx[dk] = len(desc_list)
