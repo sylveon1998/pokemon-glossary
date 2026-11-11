@@ -88,15 +88,22 @@ VER_SIMP = {
 }
 
 # 暂译类型细分（与 index.html 里 JS 的 zantyiType 保持一致）
-# 新版 xlsx 将「是否暂译」拆为「简中情况」+「繁中情况」两列，各自标注：
-#   官译 / 暂译 / 卡牌官译 / 博物展官译
-# 依据简繁两列的标注组合判断：
-#   官译+官译           -> game（游戏官译）
-#   暂译+暂译           -> fan（非官译）
-#   卡牌官译/博物展官译（简繁都是其他官译） -> card
-#   卡牌官译/博物展官译（仅简）+ 暂译         -> cardSimplOnly（仅简官）
-#   暂译 + 卡牌官译/博物展官译（仅繁）         -> cardTradOnly（仅繁官）
-OTHER_OFFICIAL = ('卡牌官译', '博物展官译')
+# 新版 xlsx 将「是否暂译」拆为「简中情况」+「繁中情况」两列，各自标注。
+# 其他官译动态识别：任意「XX官译」或「XX官译（YY）」形式（前面字数不定，可带注释），
+# 从而 Excel 更新新增官译类型时自动识别，无需改代码。
+def parse_other_official(s):
+    """识别其他官译细分类型，返回细分字符串或 None。"""
+    s = (s or '').strip()
+    if not s or s == '官译' or s == '暂译':
+        return None
+    m = re.match(r'^(.+?)官译(?:[（(]([^（()）]*)[）)])?(.*)$', s)
+    if not m:
+        return None
+    sub = m.group(1).strip()
+    if not sub:
+        return None
+    return sub
+
 
 def zantyi_type(jian, fan):
     jian = (jian or '').strip()
@@ -105,19 +112,21 @@ def zantyi_type(jian, fan):
     f_game = fan == '官译'
     j_fan = jian == '暂译'
     f_fan = fan == '暂译'
-    j_card = jian in OTHER_OFFICIAL
-    f_card = fan in OTHER_OFFICIAL
+    j_other = parse_other_official(jian)
+    f_other = parse_other_official(fan)
+    j_card = j_other is not None
+    f_card = f_other is not None
     if j_game and f_game:
-        return 'game'
+        return ('game', None, None)
     if j_fan and f_fan:
-        return 'fan'
+        return ('fan', None, None)
     if j_card and f_card:
-        return 'card'
+        return ('card', j_other, f_other)
     if j_card and f_fan:
-        return 'cardSimplOnly'
+        return ('cardSimplOnly', j_other, None)
     if j_fan and f_card:
-        return 'cardTradOnly'
-    return 'other'
+        return ('cardTradOnly', None, f_other)
+    return ('other', None, None)
 
 
 def main():
@@ -154,11 +163,11 @@ def main():
         fan = str(row[6]).strip() if len(row) > 6 and row[6] else ''
 
         key = f'{pid}_{formNo}'
-        z = zantyi_type(jian, fan)
-        dk = (desc_s, desc_t, z)
+        z, sub_s, sub_t = zantyi_type(jian, fan)
+        dk = (desc_s, desc_t, z, sub_s, sub_t)
         if dk not in desc_key_to_idx:
             desc_key_to_idx[dk] = len(desc_list)
-            desc_list.append({'d': desc_s, 't': desc_t, 'z': z})
+            desc_list.append({'d': desc_s, 't': desc_t, 'z': z, 'subS': sub_s, 'subT': sub_t})
         didx = desc_key_to_idx[dk]
 
         for v in ver.split(','):
