@@ -1525,9 +1525,11 @@ function onEnhanceToggle(){
 // word 字符类含 . ' ’ - _ 以支持缩写（Mr. S.S. Ph.D.）和连字符词（Ho-Oh）及所有格（Eternatus's）
 function tokenize(text){
   const tokens = [];
-  // word 字符类含 . ' ’ - _ % : 及全角 ％ ： 以支持缩写（Mr.）、所有格（'s）、连字符（Ho-Oh）、
-  // 百分比（10%/１０％）、属性冒号（タイプ:ファイト / タイプ：ファイト）等，全角标点也纳入避免切断
-  const re = /([\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\u00c0-\u024fA-Za-z0-9'’\-_\.%％:：＆&＋+]+)|(\s+)|([^\sA-Za-z0-9\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\u00c0-\u024f'’\-_\.%％:：＆&＋+]+)/g;
+  // word 字符类含 . ' ’ - % : 及全角 ％ ： 以支持缩写（Mr.）、所有格（'s）、连字符（Ho-Oh）、
+  // 百分比（10%/１０％）、属性冒号（タイプ:ファイト / タイプ：ファイト）等，全角标点也纳入避免切断。
+  // 注意：_（下划线）不在 word 字符类里，作为分隔符单独成 token，
+  //       使「Bulbasaur_1」拆成「Bulbasaur」+「_」+「1」三个独立 token，前者正常翻译、_1 原样保留。
+  const re = /([\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\u00c0-\u024fA-Za-z0-9'’\-\.%％:：＆&＋+]+)|(\s+)|([^\sA-Za-z0-9\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\u00c0-\u024f'’\-\.%％:：＆&＋+]+)/g;
   let m;
   let lastIdx = 0;
   while((m = re.exec(text))!==null){
