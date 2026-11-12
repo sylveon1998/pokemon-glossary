@@ -140,6 +140,33 @@ textarea:focus{outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rg
 .enh-report .er-core{color:var(--accent2); font-weight:600;}
 .enh-report .er-affix{color:var(--muted); font-size:11px; white-space:nowrap;}
 .enh-report .er-sheet{color:var(--muted); font-size:11px; white-space:nowrap;}
+/* 一词多义词汇面板 */
+.term-toggle .term-toggle-main{display:inline-flex; align-items:center; gap:6px; cursor:pointer;}
+.poly-toggle{display:inline-flex; align-items:center; gap:3px; margin-left:auto; padding:2px 8px; border:1px dashed var(--border); border-radius:6px; font-size:12px; color:var(--accent2); cursor:pointer; user-select:none; font-weight:600; flex-shrink:0;}
+.poly-toggle:hover{background:var(--chip); border-color:var(--accent2);}
+.poly-toggle.open{background:var(--chip); border-style:solid;}
+.poly-wrap{display:none; margin-top:8px; padding:10px; border:1px solid var(--border); border-radius:8px; background:var(--chip);}
+.poly-wrap.open{display:block;}
+.poly-head{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+.poly-title{font-size:13px; font-weight:700; color:var(--text);}
+.poly-hint{font-size:11px; color:var(--muted); flex:1 1 auto;}
+.poly-controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;}
+.poly-ctrl-label{font-size:12px; color:var(--muted); font-weight:600;}
+.poly-sel{padding:4px 8px; border:1px solid var(--border); border-radius:6px; font-size:12px; background:#fff;}
+.poly-type-bar{display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px;}
+.poly-type-bar .chip{font-size:11px; padding:2px 8px;}
+.poly-report{max-height:360px; overflow:auto; border:1px solid var(--border); border-radius:8px; background:#fff;}
+.poly-report table{width:100%; border-collapse:collapse; font-size:12px;}
+.poly-report th{position:sticky; top:0; background:#f7f8fc; color:var(--muted); font-weight:600; text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); white-space:nowrap; z-index:1;}
+.poly-report td{padding:5px 8px; border-bottom:1px solid var(--border); vertical-align:top;}
+.poly-report tr:last-child td{border-bottom:none;}
+.poly-report tr:hover td{background:var(--chip);}
+.poly-report .po-src{font-weight:600; color:var(--text);}
+.poly-report .po-dsts{color:var(--accent2);}
+.poly-report .po-dst-item{display:inline-block; margin:1px 4px 1px 0; padding:0 6px; border-radius:4px; background:#eef2ff; color:var(--accent2);}
+.poly-report .po-sheets{color:var(--muted); font-size:11px; white-space:nowrap;}
+.poly-report .po-count{color:var(--accent); font-weight:700; text-align:center;}
+.poly-report .po-arrow{color:var(--muted); margin:0 3px;}
 
 .popup{position:fixed; background:#fff; border:1px solid var(--border); border-radius:10px; box-shadow:0 8px 30px rgba(0,0,0,.18); padding:12px; z-index:999; max-width:360px; min-width:240px;}
 .popup .title{font-size:12px; color:var(--muted); margin-bottom:8px;}
@@ -357,10 +384,21 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
           <span class="enh-report-hint">仅列出「核心词不在术语表」的剥离（核心词已在术语表的词无需增强翻译，直接命中即可）</span>
           <button class="btn btn-sm" onclick="toggleEnhReport()">收起</button>
         </div>
-        <div class="enh-report" id="enhReport"><div class="term-empty">尚未生成。请选择语言与术语类型后点击「生成剥离表」。</div></div>
-        <div class="btn-bar" style="margin-top:8px;">
+        <div class="poly-controls" style="margin-bottom:8px;">
+          <span class="poly-ctrl-label">源语言</span>
+          <select class="poly-sel" id="enhSrcLang" onchange="buildEnhReport()"></select>
+          <span class="poly-ctrl-label">目标语言</span>
+          <select class="poly-sel" id="enhDstLang" onchange="buildEnhReport()"></select>
+          <span class="poly-ctrl-label">排序</span>
+          <select class="poly-sel" id="enhSort" onchange="buildEnhReport()">
+            <option value="core">按核心词</option>
+            <option value="affix">按后缀</option>
+            <option value="sheet">按类型</option>
+          </select>
           <button class="btn btn-sm btn-primary" onclick="buildEnhReport()">🔄 生成剥离表</button>
         </div>
+        <div class="poly-type-bar" id="enhTypeBar" style="margin-bottom:8px;"></div>
+        <div class="enh-report" id="enhReport"><div class="term-empty">尚未生成。请选择语言与术语类型后点击「生成剥离表」。</div></div>
       </div>
       </div>
     </div>
@@ -453,6 +491,7 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
       <h2 class="view-list-head" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <span>术语列表</span>
         <span class="stats" id="viewStats" style="margin:0;"></span>
+        <span class="poly-toggle" id="polyToggle" onclick="togglePolyPanel(event)" title="查看术语表中的一词多义词汇（一个源词对应多个译法）">＋ 一词多义</span>
         <span style="flex:1;"></span>
         <span style="display:flex; align-items:center; gap:6px; font-size:13px; font-weight:600;">
           每页显示
@@ -468,6 +507,29 @@ td .src-chip.src-gen{background:var(--chip); color:var(--accent2);}
       </h2>
       <div class="tbl-wrap" id="tblWrap"></div>
       <div class="pager" id="pager"></div>
+      <!-- 一词多义词汇：术语表中同一源词对应多个译法的词，可筛选语言/类型并排序 -->
+      <div class="poly-wrap collapsed" id="polyWrap">
+        <div class="poly-head">
+          <span class="poly-title">一词多义词汇</span>
+          <span class="poly-hint">术语表中同一源词对应多个不同译法的词（翻译时会标红/蓝，可点击切换）</span>
+          <button class="btn btn-sm" onclick="togglePolyPanel(event)">收起</button>
+        </div>
+        <div class="poly-controls">
+          <span class="poly-ctrl-label">源语言</span>
+          <select class="poly-sel" id="polySrcLang" onchange="buildPolyReport()"></select>
+          <span class="poly-ctrl-label">目标语言</span>
+          <select class="poly-sel" id="polyDstLang" onchange="buildPolyReport()"></select>
+          <span class="poly-ctrl-label">排序</span>
+          <select class="poly-sel" id="polySort" onchange="buildPolyReport()">
+            <option value="src">按源词</option>
+            <option value="count">按译法数量</option>
+            <option value="sheet">按类型</option>
+          </select>
+          <button class="btn btn-sm btn-primary" onclick="buildPolyReport()">🔄 生成</button>
+        </div>
+        <div class="poly-type-bar" id="polyTypeBar"></div>
+        <div class="poly-report" id="polyReport"><div class="term-empty">尚未生成。请选择源/目标语言与术语类型后点击「生成」。</div></div>
+      </div>
     </div>
   </div>
 
@@ -1583,14 +1645,14 @@ function buildIndex(srcLang, dstLang, selectedTypes, opts){
 const ENHANCE_AFFIX = [
   { name:'city',     type:'suffix', variants:['シティ','市','City'] },
   { name:'town',     type:'suffix', variants:['タウン','小镇','镇','鎮','Town'] },
-  { name:'island',   type:'suffix', variants:['しま','之岛','島','岛','島','Island'] },
+  { name:'island',   type:'suffix', variants:['しま','孤岛','之岛','島','岛','島','Island','ことう'] },
   { name:'region',   type:'suffix', variants:['地区','地區','Region','ちほう','地方'] },
   { name:'area',     type:'suffix', variants:['区','區','Area','Zone','エリア'] },
   { name:'forest',   type:'suffix', variants:['森林','树林','之森','Forest','Woods','もり','森'] },
   { name:'mountain', type:'suffix', variants:['山','岩山','Mount','Mt.','やま','いわやま'] },
   { name:'sea',      type:'suffix', variants:['海','之海','Sea','うみ'] },
   { name:'village',  type:'suffix', variants:['之村','村','Village','むら'] },
-  { name:'cave',     type:'suffix', variants:['洞窟','洞穴','之大空洞','大空洞','大洞窟','岩洞','岩窟','地洞','洞','Cave','Cavern','Underdepths','どうくつ'] },
+  { name:'cave',     type:'suffix', variants:['洞窟','洞穴','之大空洞','大空洞','大洞窟','岩洞','岩窟','岩屋','地洞','洞','Cave','Cavern','Underdepths','どうくつ','いわや'] },
   { name:'river',    type:'suffix', variants:['河','River','Canal','かわ'] },
   { name:'team',     type:'suffix', variants:['团','團','队','隊','Team','Squad','だん','たい'] },
   { name:'org',      type:'suffix', variants:['组织','組織','Organization','Organisation','きこう'] },
@@ -1620,7 +1682,8 @@ const ENHANCE_AFFIX = [
   { name:'hotel',    type:'suffix', variants:['酒店','旅馆','旅館','Hotel','Inn','ホテル','りょかん'] },
   { name:'road',     type:'suffix', variants:['之路','的道路','的路','路','Road','Street','みち','ロード'] },
   { name:'hall',     type:'suffix', variants:['馆','館','Hall','かん'] },
-  { name:'museum',   type:'suffix', variants:['博物馆','博物館','Museum','はくぶつかん'] },
+  { name:'museum',   type:'suffix', variants:['博物馆','美術館','美术馆','博物館','Museum','はくぶつかん','びじゅつかん'] },
+  { name:'lab',      type:'suffix', variants:['研究所','實驗室','实验室','ラボラトリー','けんきゅうじょ','けんきゅうしつ','ラボ','Lab','Laboratory'] },
   { name:'mine',     type:'suffix', variants:['矿山','鉱山','Mine','こうざん'] },
   { name:'contest',  type:'suffix', variants:['大赛','竞赛','比赛','たいかい','コンテスト','Competition','Contest'] },
   { name:'salon',    type:'suffix', variants:['沙龙馆','サロン','Salon'] },
@@ -1668,10 +1731,15 @@ function stripEnhanceAffix(w){
   if(!best) return null;
   // 去掉核心词首尾空白（如「Pallet Town」剥「Town」后剩「Pallet 」）
   best.core = best.core.replace(/^[\s\u3000]+|[\s\u3000]+$/g, '');
-  // 剥离日文助词「の」：如 マダツボミのとう 剥「とう」后剩「マダツボミの」，
+  // 剥离所有格助词「の/的/之」：如 マダツボミのとう 剥「とう」后剩「マダツボミの」，
   // 再去掉末尾「の」得「マダツボミ」，才能与中文核心词（喇叭芽）对应匹配。
-  // 「の」是日文所有格助词（相当于中文「之/的」），不属于核心词本身。
-  best.core = best.core.replace(/の$/g, '');
+  // 「の」是日文所有格助词，「的/之」是中文所有格助词，均不属于核心词本身。
+  // 循环剥离：应对「XXの」剥后仍带「の」的罕见情况，以及连续的助词残留。
+  let prev = '';
+  while(prev !== best.core){
+    prev = best.core;
+    best.core = best.core.replace(/[の的之]+$/g, '');
+  }
   if(!best.core) return null;
   return { core: best.core, affix: best.affix, pos: best.pos };
 }
@@ -1682,23 +1750,29 @@ function isCommonCoreWord(core){
   if(!core) return false;
   const s = String(core).trim();
   if(!s) return false;
-  // 阿拉伯数字 1~11（含「第N」已由下方中文序数覆盖；此处兼容纯数字）
+  // 问号（半角/全角，如「？？？？？」占位符、传说笔记？）
+  if(/[?？]/.test(s)) return true;
+  // 阿拉伯数字 1~11（含全角 １~１１；「第N」由下方中文序数覆盖）
   if(/^(1[01]|[1-9])$/.test(s)) return true;
   // 英文计数词 one~eleven
   if(/^(one|two|three|four|five|six|seven|eight|nine|ten|eleven)$/i.test(s)) return true;
-  // 中文序数 第一~第十一
-  if(/^第(一|二|三|四|五|六|七|八|九|十|十一)$/.test(s)) return true;
-  // 中文数字 一~十、十一
-  if(/^(一|二|三|四|五|六|七|八|九|十|十一)$/.test(s)) return true;
+  // 中文序数 第零~第十一
+  if(/^第(零|一|二|三|四|五|六|七|八|九|十|十一)$/.test(s)) return true;
+  // 中文数字 零~十、十一
+  if(/^(零|一|二|三|四|五|六|七|八|九|十|十一)$/.test(s)) return true;
   // 日文「数字+の」序数（如 １の、2の、３の），剥离岛/地方等后缀后剩这类计数词，排除
   if(/^[0-9０-９]+の$/.test(s)) return true;
-  // 含数字的核心词（阿拉伯/全角数字、中文数字一二三…十）：
+  // 含数字的核心词（阿拉伯/全角数字、中文数字零一二三…十）：
   // 如「北１番」「第二鉱」「3号」「南第２区」等，剥离后缀后核心词带数字（中/日文皆然），排除
-  if(/[0-9０-９一二三四五六七八九十]/.test(s)) return true;
+  if(/[0-9０-９零一二三四五六七八九十]/.test(s)) return true;
+  // 日文「数字+番」组合（如 東１番、北１番）：含「番」且与数字相邻的序数/街区编号，排除
+  if(/番/.test(s)) return true;
   // 常见单字：颜色/方位/大小/位置/程度/代词/之 + 「号」误剥残留字（称号→称、编号→编、口号→口）
   if(s.length === 1 && /[红綠藍黑白灰橙褐淺大小中東南西北左右前後高低矮胖瘦你我他她之称编口]/.test(s)) return true;
   // X色（颜色字 + 色，如 红色/绿色/蓝色）
   if(s.length === 2 && /^[红綠藍黑白灰橙褐淺][色]$/.test(s)) return true;
+  // 纯助词「的/之」：剥离后缀后只剩虚词，无实义，排除
+  if(/^(的|之)$/.test(s)) return true;
   return false;
 }
 
@@ -1713,6 +1787,9 @@ function buildEnhanceIndex(srcLang, dstLang, selectedTypes, opts){
   if(_enhanceCache.has(cacheKey)) return _enhanceCache.get(cacheKey);
 
   const index = new Map();
+  // 术语表中已有的源词（归一化键集合）。剥离出的核心词若已在术语表中
+  // （本身就能作为普通术语命中翻译），则不建立增强映射（避免冗余/冲突）。
+  const existingKeys = collectAllSrcKeys(srcLang, selectedTypes, opts);
   for(const sn of selectedTypes){
     const ws = workbook[sn];
     for(const r of ws.rows){
@@ -1730,7 +1807,7 @@ function buildEnhanceIndex(srcLang, dstLang, selectedTypes, opts){
             // 核心源词 -> 核心译文
             const coreKey = normKey(sStrip.core, opts);
             const coreDst = dStrip.core;
-            if(coreKey && coreDst && !isCommonCoreWord(sStrip.core)){
+            if(coreKey && coreDst && !isCommonCoreWord(sStrip.core) && !existingKeys.has(coreKey)){
               if(!index.has(coreKey)) index.set(coreKey, []);
               index.get(coreKey).push({sheet:sn, src:sStrip.core, dst:coreDst, id:r['id'], special, srcOrig, enhance:true, fullSrc:sv, fullDst:dv});
             }
@@ -1743,7 +1820,7 @@ function buildEnhanceIndex(srcLang, dstLang, selectedTypes, opts){
           const noHy = sv.replace(/-/g, '');
           if(noHy && !isCommonCoreWord(noHy)){
             const coreKey = normKey(noHy, opts);
-            if(coreKey){
+            if(coreKey && !existingKeys.has(coreKey)){
               if(!index.has(coreKey)) index.set(coreKey, []);
               index.get(coreKey).push({sheet:sn, src:noHy, dst:dv, id:r['id'], special, srcOrig, enhance:true, fullSrc:sv, fullDst:dv});
             }
@@ -1773,6 +1850,179 @@ function toggleEnhReport(){
   if(!wrap || !tg) return;
   const open = wrap.classList.toggle('open');
   tg.classList.toggle('open', open);
+  if(open) initEnhControls();
+}
+
+// 初始化剥离表的语言下拉与类型 chips（默认取翻译模式当前选中的语言/类型）
+function initEnhControls(){
+  const srcSel = document.getElementById('enhSrcLang');
+  const dstSel = document.getElementById('enhDstLang');
+  if(srcSel && dstSel && srcSel.options.length === 0){
+    let curSrc = selectedLangChip('srcLangChips');
+    let curDst = selectedLangChip('dstLangChips');
+    if(curSrc === 'auto') curSrc = null;
+    if(curDst === 'auto') curDst = null;
+    for(const l of TRANSLATE_LANGS){
+      const o1 = document.createElement('option');
+      o1.value = l.key; o1.textContent = l.label;
+      if(curSrc && l.key === curSrc) o1.selected = true;
+      srcSel.appendChild(o1);
+      const o2 = document.createElement('option');
+      o2.value = l.key; o2.textContent = l.label;
+      if(curDst && l.key === curDst) o2.selected = true;
+      dstSel.appendChild(o2);
+    }
+  }
+  const bar = document.getElementById('enhTypeBar');
+  if(bar && bar.children.length === 0){
+    const curSet = new Set(selectedChips('type'));
+    for(const sn of allSheets){
+      const c = document.createElement('div');
+      c.className = 'chip';
+      c.textContent = sn;
+      c.dataset.val = sn;
+      c.dataset.group = 'enhtype';
+      if(curSet.size === 0 || curSet.has(sn)) c.classList.add('on');
+      c.onclick = ()=>{ c.classList.toggle('on'); };
+      bar.appendChild(c);
+    }
+    const allBtn = document.createElement('button');
+    allBtn.className = 'btn btn-sm'; allBtn.textContent = '全选';
+    allBtn.onclick = ()=>{ getChips('enhtype').forEach(c=>c.classList.add('on')); };
+    bar.appendChild(allBtn);
+    const noneBtn = document.createElement('button');
+    noneBtn.className = 'btn btn-sm'; noneBtn.textContent = '全不选';
+    noneBtn.onclick = ()=>{ getChips('enhtype').forEach(c=>c.classList.remove('on')); };
+    bar.appendChild(noneBtn);
+  }
+}
+
+// ===================== 一词多义词汇面板 =====================
+// 展示术语表中「同一源词对应多个不同译法」的词（即翻译时会标红/蓝、可点击切换的词）。
+// 数据来源复用 buildIndex：遍历术语表，找出候选译文数 ≥ 2 的源词。
+// 支持筛选源语言/目标语言/术语类型，并按源词/译法数量/类型排序。
+
+// 面板展开/收起
+function togglePolyPanel(e){
+  if(e) e.stopPropagation();
+  const wrap = document.getElementById('polyWrap');
+  const tg = document.getElementById('polyToggle');
+  if(!wrap || !tg) return;
+  const open = wrap.classList.toggle('open');
+  tg.classList.toggle('open', open);
+  if(open) initPolyControls();
+}
+
+// 初始化语言下拉与类型 chips（仅在首次展开或数据变化时重建）
+function initPolyControls(){
+  const srcSel = document.getElementById('polySrcLang');
+  const dstSel = document.getElementById('polyDstLang');
+  if(!srcSel || !dstSel) return;
+  // 语言下拉：用可翻译语言列表（TRANSLATE_LANGS），已加载则填充
+  if(srcSel.options.length === 0){
+    // 默认取「术语查找」查看模式当前勾选的显示语言：第一个作为源语言，简体中文优先作为目标语言
+    const vlangs = getChips('vlang').filter(c=>c.classList.contains('on')).map(c=>c.dataset.key);
+    let curSrc = vlangs.find(k=>k !== '简体中文') || vlangs[0];
+    let curDst = vlangs.includes('简体中文') ? '简体中文' : (vlangs[1] || vlangs[0]);
+    for(const l of TRANSLATE_LANGS){
+      const o1 = document.createElement('option');
+      o1.value = l.key; o1.textContent = l.label;
+      if(curSrc && l.key === curSrc) o1.selected = true;
+      srcSel.appendChild(o1);
+      const o2 = document.createElement('option');
+      o2.value = l.key; o2.textContent = l.label;
+      if(curDst && l.key === curDst) o2.selected = true;
+      dstSel.appendChild(o2);
+    }
+  }
+  // 类型 chips（复用术语类型 sheet 名，默认取查看模式勾选的类型）
+  const bar = document.getElementById('polyTypeBar');
+  if(bar && bar.children.length === 0){
+    const curTypes = getChips('vtype').filter(c=>c.classList.contains('on')).map(c=>c.dataset.val);
+    const curSet = new Set(curTypes);
+    for(const sn of allSheets){
+      const c = document.createElement('div');
+      c.className = 'chip';
+      c.textContent = sn;
+      c.dataset.val = sn;
+      c.dataset.group = 'polytype';
+      if(curSet.size === 0 || curSet.has(sn)) c.classList.add('on');
+      c.onclick = ()=>{ c.classList.toggle('on'); };
+      bar.appendChild(c);
+    }
+    // 全选/反选按钮
+    const allBtn = document.createElement('button');
+    allBtn.className = 'btn btn-sm'; allBtn.textContent = '全选';
+    allBtn.onclick = ()=>{ getChips('polytype').forEach(c=>c.classList.add('on')); };
+    bar.appendChild(allBtn);
+    const noneBtn = document.createElement('button');
+    noneBtn.className = 'btn btn-sm'; noneBtn.textContent = '全不选';
+    noneBtn.onclick = ()=>{ getChips('polytype').forEach(c=>c.classList.remove('on')); };
+    bar.appendChild(noneBtn);
+  }
+}
+
+// 生成一词多义词汇表
+function buildPolyReport(){
+  const box = document.getElementById('polyReport');
+  if(!box) return;
+  if(!workbook){ box.innerHTML = '<div class="term-empty">请先加载术语表文件</div>'; return; }
+  const srcLang = document.getElementById('polySrcLang').value;
+  const dstLang = document.getElementById('polyDstLang').value;
+  const types = getChips('polytype').filter(c=>c.classList.contains('on')).map(c=>c.dataset.val);
+  if(!srcLang || !dstLang){ box.innerHTML = '<div class="term-empty">请选择源语言与目标语言</div>'; return; }
+  if(types.length === 0){ box.innerHTML = '<div class="term-empty">请选择至少一个术语类型</div>'; return; }
+  const sortMode = document.getElementById('polySort').value;
+  const opts = getOpts();
+
+  // 复用 buildIndex：normKey -> [{sheet, src, dst, ...}]
+  const index = buildIndex(srcLang, dstLang, types, opts);
+
+  // 收集：归一化源词 -> { src 原始展示词, dstSet(去重译文), sheets(去重类型), count }
+  const map = new Map();
+  for(const [nk, cands] of index){
+    const dstSet = new Set();
+    const sheets = new Set();
+    let srcShow = '';
+    for(const c of cands){
+      dstSet.add(c.dst);
+      sheets.add(c.sheet);
+      if(!srcShow && c.src) srcShow = c.src;
+    }
+    // 多译：译文种类 ≥ 2（不同译文才算多义；同词不同 sheet 同译文不算）
+    if(dstSet.size < 2) continue;
+    map.set(nk, { src: srcShow || nk, dsts: Array.from(dstSet), sheets: Array.from(sheets), count: dstSet.size });
+  }
+
+  const list = Array.from(map.values());
+  // 排序
+  if(sortMode === 'count'){
+    list.sort((a,b)=> b.count - a.count || a.src.localeCompare(b.src, 'zh'));
+  } else if(sortMode === 'sheet'){
+    list.sort((a,b)=> (a.sheets.join('、')).localeCompare(b.sheets.join('、'), 'zh') || a.src.localeCompare(b.src, 'zh'));
+  } else {
+    list.sort((a,b)=> a.src.localeCompare(b.src, 'zh'));
+  }
+
+  if(list.length === 0){
+    box.innerHTML = '<div class="term-empty">当前语言/类型组合下没有一词多义的词汇</div>';
+    return;
+  }
+
+  box.innerHTML = `<table><thead><tr>
+    <th style="width:22%;">源词</th>
+    <th>译法（${dstLang}）</th>
+    <th style="width:15%;">类型</th>
+    <th style="width:8%; text-align:center;">译法数</th>
+  </tr></thead><tbody>` +
+    list.map(o => `<tr>
+      <td class="po-src">${escHtml(o.src)}</td>
+      <td class="po-dsts">${o.dsts.map(d=>`<span class="po-dst-item">${escHtml(d)}</span>`).join('')}</td>
+      <td class="po-sheets">${o.sheets.map(s=>escHtml(s)).join('、')}</td>
+      <td class="po-count">${o.count}</td>
+    </tr>`).join('') +
+    `</tbody></table>
+    <div style="padding:6px 8px; font-size:11px; color:var(--muted);">共 ${list.length} 个一词多义词（按 ${srcLang} → ${dstLang} 统计）</div>`;
 }
 
 // 收集所有术语源词的归一化键集合（用于判断核心词是否已在术语表中）
@@ -1797,17 +2047,17 @@ function buildEnhReport(){
   const box = document.getElementById('enhReport');
   if(!box){ return; }
   if(!workbook){ box.innerHTML = '<div class="term-empty">请先加载术语表文件</div>'; return; }
-  let srcLang = selectedLangChip('srcLangChips');
-  const dstLang = selectedLangChip('dstLangChips');
-  const types = selectedChips('type');
-  if(!srcLang || !dstLang){ box.innerHTML = '<div class="term-empty">请先选择源语言与目标语言</div>'; return; }
-  if(types.length === 0){ box.innerHTML = '<div class="term-empty">请先选择至少一个术语类型</div>'; return; }
-  if(srcLang === 'auto'){
-    const text = document.getElementById('srcText').value;
-    const detected = detectLang(text);
-    if(detected) srcLang = detected;
-    else { box.innerHTML = '<div class="term-empty">源语言为「自动」，请先输入源文本以识别语言，或手动选择语言</div>'; return; }
-  }
+  // 读取面板内的筛选控件；若尚未初始化则先初始化
+  const srcSel = document.getElementById('enhSrcLang');
+  const dstSel = document.getElementById('enhDstLang');
+  if(!srcSel || !dstSel) return;
+  if(srcSel.options.length === 0) initEnhControls();
+  let srcLang = srcSel.value;
+  const dstLang = dstSel.value;
+  const types = getChips('enhtype').filter(c=>c.classList.contains('on')).map(c=>c.dataset.val);
+  const sortMode = document.getElementById('enhSort') ? document.getElementById('enhSort').value : 'core';
+  if(!srcLang || !dstLang){ box.innerHTML = '<div class="term-empty">请选择源语言与目标语言</div>'; return; }
+  if(types.length === 0){ box.innerHTML = '<div class="term-empty">请选择至少一个术语类型</div>'; return; }
   const opts = getOpts();
 
   // 术语表中已有的源词（归一化键集合），核心词命中它则视为「已在术语表」，从表中排除
@@ -1862,8 +2112,14 @@ function buildEnhReport(){
       if(!o.sheets.includes(r.sheet)) o.sheets.push(r.sheet);
     }
   }
-  // 按核心词排序
-  list.sort((a,b)=> a.core.localeCompare(b.core, 'zh'));
+  // 排序
+  if(sortMode === 'affix'){
+    list.sort((a,b)=> a.affix.localeCompare(b.affix, 'zh') || a.core.localeCompare(b.core, 'zh'));
+  } else if(sortMode === 'sheet'){
+    list.sort((a,b)=> (a.sheets.join('、')).localeCompare(b.sheets.join('、'), 'zh') || a.core.localeCompare(b.core, 'zh'));
+  } else {
+    list.sort((a,b)=> a.core.localeCompare(b.core, 'zh'));
+  }
 
   box.innerHTML = `<table><thead><tr>
     <th>核心词 → 译文核心</th><th>剥离后缀</th><th>原词（来源）</th><th>类型</th>
@@ -1874,7 +2130,8 @@ function buildEnhReport(){
       <td class="er-src">${o.srcs.map(s=>escHtml(s)).join('、')}</td>
       <td class="er-sheet">${o.sheets.map(s=>escHtml(s)).join('、')}</td>
     </tr>`).join('') +
-    `</tbody></table>`;
+    `</tbody></table>
+    <div style="padding:6px 8px; font-size:11px; color:var(--muted);">共 ${list.length} 条（按 ${srcLang} → ${dstLang} 剥离统计）</div>`;
 }
 
 // 分词：把文本切成 word / space / punct token，并记录每个 token 在原文的字符偏移
@@ -3534,6 +3791,11 @@ function handleFile(file){
       // 默认全选类型（翻译模式）
       typeSelectAll(true);
       renderView();
+      // 手动加载成功后加密缓存到本地，下次打开自动读取
+      try{
+        const enc = await encryptBytes(e.target.result);
+        await saveOffline(enc);
+      }catch(err2){ /* 缓存失败不影响本次加载 */ }
     }catch(err){
       alert('解析文件失败：'+err.message);
     }
@@ -3629,6 +3891,8 @@ const SRC_MODE_KEY = 'poke_glossary_mode_v2';
 const OFFLINE_DB_NAME = 'poke_glossary_offline_v1';
 const OFFLINE_STORE = 'data';
 const OFFLINE_KEY = 'encrypted_xlsx';
+const OFFLINE_DEX_KEY = 'encrypted_dex_json';      // 图鉴 JSON 离线缓存 key（同 store）
+const OFFLINE_DEX_LS_KEY = 'poke_glossary_dex_b64'; // 图鉴 localStorage 降级 key
 const AUTO_UPDATE_KEY = 'poke_glossary_last_auto_v1';
 const AUTO_INTERVAL = 24 * 60 * 60 * 1000; // 一天
 const DEFAULT_SRC_URL = 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/refs/heads/main/Glossary%20Master%20261014.xlsx';
@@ -3822,6 +4086,45 @@ async function readOffline(){
   }catch(e){ return null; }
 }
 
+// —— 图鉴数据离线缓存（加密，复用同一加密密钥，独立 store key）——
+async function saveOfflineDex(enc){
+  try{
+    const db = await openOfflineDB();
+    await new Promise((resolve, reject)=>{
+      const tx = db.transaction(OFFLINE_STORE, 'readwrite');
+      tx.objectStore(OFFLINE_STORE).put(enc, OFFLINE_DEX_KEY);
+      tx.oncomplete = ()=>{ db.close(); resolve(); };
+      tx.onerror = ()=>reject(tx.error);
+    });
+    return;
+  }catch(e){
+    try{
+      const b64 = btoa(String.fromCharCode.apply(null, new Uint8Array(enc.data)));
+      const obj = JSON.stringify({ iv: enc.iv, data: b64 });
+      localStorage.setItem(OFFLINE_DEX_LS_KEY, obj);
+    }catch(e2){ throw e; }
+  }
+}
+async function readOfflineDex(){
+  try{
+    const db = await openOfflineDB();
+    const enc = await new Promise((resolve, reject)=>{
+      const tx = db.transaction(OFFLINE_STORE, 'readonly');
+      const req = tx.objectStore(OFFLINE_STORE).get(OFFLINE_DEX_KEY);
+      req.onsuccess = ()=>{ db.close(); resolve(req.result || null); };
+      req.onerror = ()=>reject(req.error);
+    });
+    if(enc) return enc;
+  }catch(e){ /* 继续尝试 localStorage */ }
+  try{
+    const raw = localStorage.getItem(OFFLINE_DEX_LS_KEY);
+    if(!raw) return null;
+    const obj = JSON.parse(raw);
+    const data = Uint8Array.from(atob(obj.data), c=>c.charCodeAt(0));
+    return { iv: obj.iv, data: Array.from(data) };
+  }catch(e){ return null; }
+}
+
 // —— 核心：下载 URL 的 xlsx 并加载 ——
 // 把来源（URL 或文件名）转成仅用于显示的友好名称，避免暴露完整链接
 function toDisplayName(source){
@@ -3946,24 +4249,46 @@ async function manualUpdate(){
   }
 }
 
-// 自动拉取：每次打开网页都从在线 URL 拉取最新数据（默认后台行为，前台不显示按钮）
+// 自动加载：打开网页先读本地加密缓存（秒开、断网可用），再后台尝试在线更新并刷新缓存
 function maybeAutoUpdate(){
   if(srcMode !== 'auto' || !srcUrl) return;
-  setSrcStatus('正在自动拉取最新数据…');
-  resolveSrcUrl().then(url=>fetchAndLoad(url)).then(async (buf)=>{
-    try{ localStorage.setItem(AUTO_UPDATE_KEY, String(Date.now())); }catch(e){}
-    // 拉取成功后，用同一份 buffer 加密缓存到本地（离线兜底），避免二次下载
+  // 先读本地加密缓存：命中则立即应用（秒开），否则走在线
+  (async ()=>{
+    let loadedFromCache = false;
     try{
-      const enc = await encryptBytes(buf);
-      await saveOffline(enc);
-    }catch(e2){}
-    setSrcStatus(`已自动拉取最新数据（${new Date().toLocaleString()}）。断网时可切「离线」读取。`);
-  }).catch(e=>{
-    let msg = e && e.message ? e.message : String(e);
-    setSrcStatus('自动拉取失败（将尝试读取本地缓存）：'+msg+'（若提示 CORS/跨域或 NetworkError，请改用「手动加载」或拖入本地文件，或确认 GitHub 链接可访问。）');
-    // 拉取失败时，若本地有加密缓存，自动回退到离线数据
-    loadOffline();
-  });
+      const enc = await readOffline();
+      if(enc){
+        const pt = await decryptBytes(enc);
+        await applyWorkbook(pt.buffer, '本地缓存（加密）');
+        loadedFromCache = true;
+        setSrcStatus('已从本地加密缓存加载，正在后台检查更新…');
+      }
+    }catch(e){ /* 缓存不可用，走在线 */ }
+
+    // 后台尝试在线更新（无论是否命中缓存都尝试，成功则刷新数据与缓存）
+    setSrcStatus(loadedFromCache ? '已加载本地缓存，正在后台拉取最新数据…' : '正在自动拉取最新数据…');
+    try{
+      const url = await resolveSrcUrl();
+      const buf = await fetchAndLoad(url);
+      try{ localStorage.setItem(AUTO_UPDATE_KEY, String(Date.now())); }catch(e){}
+      // 成功后加密缓存（离线兜底）
+      try{
+        const enc = await encryptBytes(buf);
+        await saveOffline(enc);
+      }catch(e2){}
+      setSrcStatus(`已自动拉取最新数据（${new Date().toLocaleString()}）。断网时自动使用本地加密缓存。`);
+    }catch(e){
+      let msg = e && e.message ? e.message : String(e);
+      if(loadedFromCache){
+        // 已有缓存可用：仅提示在线更新失败，不影响使用
+        setSrcStatus('在线更新失败（已使用本地缓存）：'+msg);
+      }else{
+        setSrcStatus('自动拉取失败：'+msg+'（若提示 CORS/跨域或 NetworkError，请改用「手动加载」或拖入本地文件，或确认 GitHub 链接可访问。）');
+        // 无缓存且在线失败：最后再试一次离线（可能之前有 localStorage 兜底）
+        loadOffline();
+      }
+    }
+  })();
 }
 
 // 离线模式：从本地加密 IndexedDB 读取
@@ -4007,8 +4332,15 @@ if(srcMode === 'offline' && isFileProtocol()){
   srcMode = 'auto';
   try{ localStorage.setItem(SRC_MODE_KEY, 'auto'); }catch(e){}
 }
-if(srcMode === 'auto'){ maybeAutoUpdate(); }
-else if(srcMode === 'offline'){ loadOffline(); }
+// 页面打开即自动加载：术语表 + 图鉴都自动加载（先读本地加密缓存秒开，再后台在线更新）。
+// 注意：此函数必须在 script 末尾（所有 let 声明之后）调用，避免 TDZ（如 _dexLoaded）报错。
+function bootstrapData(){
+  // 术语表：auto 模式自动加载；offline 模式读本地缓存
+  if(srcMode === 'auto'){ maybeAutoUpdate(); }
+  else if(srcMode === 'offline'){ loadOffline(); }
+  // 图鉴：始终自动加载（先缓存后在线），不依赖 tab 切换
+  try{ autoLoadDex(); }catch(e){ /* 图鉴加载失败不影响术语表 */ }
+}
 
 // ===================== 源语言实时自动识别 =====================
 // 输入/粘贴/删除内容时，立即检测语言并切换源语言 chip；清空后跳回「自动识别」
@@ -5044,18 +5376,48 @@ function renderEntryListHtml(list, single){
 // 图鉴数据源 URL（预生成 JSON，与术语表同仓库）
 const DEX_SRC_URL = 'https://raw.githubusercontent.com/sylveon1998/pokemon-glossary/refs/heads/main/pokedex_entries.json';
 
-// 自动加载图鉴数据（先试 GitHub JSON，再试本地相对路径）
+// 自动加载图鉴数据：先读本地加密缓存（秒开），再后台尝试在线更新，成功后加密缓存
+let _dexLoadingPromise = null;   // 防止并发重复加载
 async function autoLoadDex(){
   if(_dexLoaded) return;
-  // 1. 优先 GitHub 直链（预生成 JSON，直接 JSON.parse，无需 xlsx 库）
+  if(_dexLoadingPromise) return _dexLoadingPromise;
+  _dexLoadingPromise = (async ()=>{
+    // 1. 优先本地加密缓存（最快，断网也可用）
+    try{
+      const enc = await readOfflineDex();
+      if(enc){
+        const pt = await decryptBytes(enc);
+        const data = JSON.parse(new TextDecoder().decode(pt));
+        applyDexJson(data);
+        renderDexEntries();
+        // 命中缓存后，后台尝试在线更新（不阻塞，失败静默）
+        refreshDexFromNetwork();
+        return;
+      }
+    }catch(e){ /* 缓存不可用，走在线 */ }
+    // 2. 无缓存：在线加载（GitHub JSON → 本地相对路径 → xlsx）
+    await refreshDexFromNetwork(true);
+  })();
+  return _dexLoadingPromise;
+}
+
+// 从网络刷新图鉴数据；saveNow=true 表示无缓存时必须加载成功，否则静默
+async function refreshDexFromNetwork(forceLoad){
+  // 1. GitHub 直链（预生成 JSON）
   try{
     const r = await fetch(DEX_SRC_URL, {cache:'no-store'});
     if(r.ok){
       _dexDate = extractDateFromName(r.headers.get('last-modified')) || _dexDate;
-      const data = await r.json();
+      const text = await r.text();
+      const data = JSON.parse(text);
       applyDexJson(data);
       renderDexEntries();
-      return;
+      // 加密缓存（供下次离线秒开）
+      try{
+        const enc = await encryptBytes(new TextEncoder().encode(text));
+        await saveOfflineDex(enc);
+      }catch(e2){}
+      return true;
     }
   }catch(e){}
   // 2. 本地相对路径兜底（JSON）
@@ -5063,10 +5425,15 @@ async function autoLoadDex(){
     const r = await fetch('pokedex_entries.json', {cache:'no-store'});
     if(r.ok){
       _dexDate = extractDateFromName(r.headers.get('last-modified')) || _dexDate;
-      const data = await r.json();
+      const text = await r.text();
+      const data = JSON.parse(text);
       applyDexJson(data);
       renderDexEntries();
-      return;
+      try{
+        const enc = await encryptBytes(new TextEncoder().encode(text));
+        await saveOfflineDex(enc);
+      }catch(e2){}
+      return true;
     }
   }catch(e){}
   // 3. 本地 xlsx 兜底（需 xlsx 库，仅在前两者都失败时）
@@ -5079,10 +5446,15 @@ async function autoLoadDex(){
         await ensureXLSX();
         applyDexWorkbook(buf, n);
         renderDexEntries();
-        return;
+        return true;
       }
     }catch(e){}
   }
+  if(forceLoad){
+    // 全部失败且无缓存：提示
+    setSrcStatus('图鉴数据加载失败：请检查网络，或通过「手动加载」导入 pokedex 文件。');
+  }
+  return false;
 }
 
 // 手动/拖拽加载 pokedex 文件（复用现有 fileInput 逻辑）
@@ -5097,8 +5469,13 @@ function handleDexFile(file){
     const reader = new FileReader();
     reader.onload = (e)=>{
       try{
-        applyDexJson(JSON.parse(e.target.result));
+        const text = String(e.target.result);
+        applyDexJson(JSON.parse(text));
         renderDexEntries();
+        // 加密缓存图鉴数据
+        try{
+          encryptBytes(new TextEncoder().encode(text)).then(enc=>saveOfflineDex(enc)).catch(()=>{});
+        }catch(err2){}
       }catch(err){ alert('解析图鉴数据文件失败：'+err.message); }
     };
     reader.readAsText(file);
@@ -5114,6 +5491,18 @@ function handleDexFile(file){
   };
   reader.readAsArrayBuffer(file);
 }
+
+// ===================== 启动：页面打开即自动加载术语表 + 图鉴 =====================
+// 放在 script 末尾（所有 let 声明之后）调用，避免 TDZ 报错。
+// 用 DOMContentLoaded 兜底：若 DOM 尚未就绪则等就绪后再执行（正常情况下脚本已在 body 末尾，DOM 已就绪）。
+(function(){
+  const run = ()=>bootstrapData();
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', run, { once:true });
+  }else{
+    run();
+  }
+})();
 
 </script>
 </body>
