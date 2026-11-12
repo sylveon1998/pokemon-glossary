@@ -4603,15 +4603,11 @@ function parseDexWorkbook(data){
 
 // 应用 pokedex 数据（xlsx 手动上传路径）
 function applyDexWorkbook(buf, sourceName){
-  try{
-    const d = parseDexWorkbook(buf);
-    _dexVersions = d.v; _dexDescs = d.descs; _dexPokes = d.pokes;
-    _dexLoaded = true;
-    dexResetCaches();
-    console.log('图鉴数据已加载：', sourceName, '，说明数：', _dexDescs.length);
-  }catch(e){
-    console.error('解析图鉴失败', e);
-  }
+  const d = parseDexWorkbook(buf);
+  _dexVersions = d.v; _dexDescs = d.descs; _dexPokes = d.pokes;
+  _dexLoaded = true;
+  dexResetCaches();
+  console.log('图鉴数据已加载：', sourceName, '，说明数：', _dexDescs.length);
 }
 
 // 初始化图鉴 UI（tab 切入时调用）
@@ -5437,7 +5433,8 @@ async function refreshDexFromNetwork(forceLoad){
     }
   }catch(e){}
   // 3. 本地 xlsx 兜底（需 xlsx 库，仅在前两者都失败时）
-  const names = ['pokedex 1.0_已更新.xlsx', 'pokedex.xlsx'];
+  // 依次尝试常见文件名，避免因文件改名导致兜底失败
+  const names = ['pokedex 1.1.xlsx', 'pokedex 1.0_已更新.xlsx', 'pokedex.xlsx'];
   for(const n of names){
     try{
       const r = await fetch(n, {cache:'no-store'});
@@ -5446,6 +5443,11 @@ async function refreshDexFromNetwork(forceLoad){
         await ensureXLSX();
         applyDexWorkbook(buf, n);
         renderDexEntries();
+        // 加密缓存，下次离线/直接打开可秒开
+        try{
+          const enc = await encryptBytes(new Uint8Array(buf));
+          await saveOfflineDex(enc);
+        }catch(e2){}
         return true;
       }
     }catch(e){}
@@ -5487,6 +5489,11 @@ function handleDexFile(file){
       await ensureXLSX();
       applyDexWorkbook(e.target.result, file.name);
       renderDexEntries();
+      // 加密缓存图鉴数据（xlsx 手动加载同样缓存，下次打开秒开）
+      try{
+        const buf = e.target.result;
+        encryptBytes(new Uint8Array(buf)).then(enc=>saveOfflineDex(enc)).catch(()=>{});
+      }catch(err2){}
     }catch(err){ alert('解析图鉴文件失败：'+err.message); }
   };
   reader.readAsArrayBuffer(file);
